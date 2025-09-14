@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Neuro-Estates</title>
+  <style>
+    :root {
+      --bg-light: #f8f9fa;
+      --text-light: #222;
+      --card-light: #ffffff;
+
+      --bg-dark: #121212;
+      --text-dark: #f5f5f5;
+      --card-dark: #1e1e1e;
+
+      --accent: #a259ff;
+      --accent-dark: #7a3ad7;
+
+      --radius: 16px;
+      --shadow: 0 4px 15px rgba(162, 89, 255, 0.25);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg-light);
+      color: var(--text-light);
+      transition: background 0.3s ease, color 0.3s ease;
+      line-height: 1.5;
+    }
+
+    body.dark-mode {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    .header {
+      text-align: center;
+      padding: 2.5rem 1rem 1rem;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    .toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--accent);
+      color: #fff;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      box-shadow: var(--shadow);
+      transition: background 0.25s ease, transform 0.2s ease;
+    }
+
+    .toggle:hover {
+      background: var(--accent-dark);
+      transform: scale(1.05);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem 3rem;
+    }
+
+    .card {
+      background: var(--card-light);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.25s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    body.dark-mode .card {
+      background: var(--card-dark);
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 8px 25px rgba(162, 89, 255, 0.45);
+    }
+
+    .card h3 {
+      margin: 0 0 0.6rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .card .location {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #777;
+      margin-bottom: 0.7rem;
+    }
+
+    body.dark-mode .card .location {
+      color: #aaa;
+    }
+
+    .card .tagline {
+      font-size: 1rem;
+      font-weight: 500;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <button class="toggle" onclick="toggleDarkMode()">🌙 Toggle Mode</button>
+  <div class="header">🏢 Neuro-Estates – Agency Directory</div>
+  <div class="cards">
+    {% for agency in agencies %}
+      <a href="{{ agency.url }}" class="card" target="_blank">
+        <h3>{{ agency.name }}</h3>
+        <div class="location">{{ agency.location }}</div>
+        <div class="tagline">{{ agency.tagline }}</div>
+      </a>
+    {% endfor %}
+  </div>
+
+  <script>
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+  </script>
+</body>
+</html>
