@@ -136,21 +136,26 @@ def preload_documents():
 # Global dictionary to hold loaded docs content
 AGENT_DOCUMENTS = {}
 def load_agent_documents():
+    """
+    Loads all agent documents from /var/data/<agent_id>/ and stores
+    their content in AGENT_DOCUMENTS, keyed by agent_id.
+    """
     global AGENT_DOCUMENTS
     AGENT_DOCUMENTS = {}
 
     global_docs = load_global_docs()  # JSON registry of uploaded files
 
-    for agent_id, relative_paths in global_docs.items():
-        if not isinstance(relative_paths, list):
-            relative_paths = [relative_paths]
+    for agent_id, file_names in global_docs.items():
+        if not isinstance(file_names, list):
+            file_names = [file_names]  # ensure list
 
         contents = []
-        agent_folder = os.path.join('/var/data', agent_id)  # base folder for this agent
+        agent_folder = os.path.join('/var/data', agent_id)  # agent-specific folder
         os.makedirs(agent_folder, exist_ok=True)  # ensure folder exists
 
-        for rel_path in relative_paths:
-            full_path = os.path.normpath(os.path.join(agent_folder, rel_path))
+        for file_name in file_names:
+            # Only join with agent_folder, no double agent folder
+            full_path = os.path.normpath(os.path.join(agent_folder, file_name))
 
             if os.path.exists(full_path):
                 try:
@@ -435,7 +440,7 @@ def upload(agent_id):
     if agent_id not in AGENT_CONFIG:
         flash('Unknown agent', 'error')
         return redirect(url_for('home'))
-    
+
     if request.method == 'POST':
         file = request.files.get('docfile')
         if not file or file.filename == '':
@@ -445,45 +450,35 @@ def upload(agent_id):
         if not allowed_file(file.filename):
             flash('File type not allowed', 'error')
             return redirect(url_for('upload', agent_id=agent_id))
-        
-        # Set upload directory to /var/data
+
+        # Correct folder: one per agent
         upload_dir = get_user_upload_dir(agent_id)  # /var/data/<agent_id>
-        os.makedirs(upload_dir, exist_ok=True)  # ensure folder exists
         
-        # Secure filename with UUID prefix
+        # Secure filename
         filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
         file_path = os.path.join(upload_dir, filename)
-        
-        # Save uploaded file
         file.save(file_path)
         
-        # Compute relative path from /var/data
-        relative_path = os.path.relpath(file_path, upload_dir)
+        # Store **relative path relative to agent folder** only
+        relative_path = filename  # just the file name, no extra folder
         
-        # Load existing docs JSON
+        # Update JSON
         global_docs = load_global_docs()
-        
-        # Make sure the agent's list exists and append new file
         if agent_id not in global_docs or not isinstance(global_docs[agent_id], list):
             global_docs[agent_id] = []
         global_docs[agent_id].append(relative_path)
-        
-        # Save back to JSON
         save_global_docs(global_docs)
         
-        # Update session agent data so new documents are recognized
+        # Refresh in-memory docs
         data = user_agent_data(agent_id)
-        data['rag_file'] = None  # clear rag_file so it reloads if needed
+        data['rag_file'] = None
         data['document_name'] = None
-        
-        # Reload in-memory documents for immediate availability
         load_agent_documents()
         
         session.modified = True
         flash('File uploaded', 'success')
         return redirect(url_for('chat', agent_id=agent_id))
-    
-    # GET: just render upload form
+
     return render_template('upload.html', agent_id=agent_id)
 
 @app.route('/reset/<agent_id>', methods=['POST'])
