@@ -84,35 +84,49 @@ def load_user(uid):
 DOC_JSON_PATH = os.path.join(BASE_DIR, "agent_docs.json")
 
 def load_prompt(name):
-    with open(os.path.join(BASE_DIR, 'prompts', f'{name}.txt'), encoding='utf-8') as f:
-        return f.read()
+    """Load system prompt text for a given agent."""
+    prompt_path = os.path.join(BASE_DIR, 'prompts', f'{name}.txt')
+    if os.path.exists(prompt_path):
+        with open(prompt_path, encoding='utf-8') as f:
+            return f.read()
+    return ""
 
 def allowed_file(filename):
+    """Check if file has an allowed extension."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 def get_user_upload_dir(agent_id):
-    # Upload folder structure: uploads/VisionaryAutomation/<agent_id>/
-    path = os.path.join(app.config['UPLOAD_FOLDER'], agent_id)
+    """Return the agent-specific folder under /var/data and ensure it exists."""
+    path = os.path.join('/var/data', agent_id)
     os.makedirs(path, exist_ok=True)
     return path
 
 def load_global_docs():
+    """Load the JSON registry of uploaded files."""
     if os.path.exists(DOC_JSON_PATH):
         with open(DOC_JSON_PATH, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            docs = json.load(f)
+            # Normalize old paths: strip agent folder if mistakenly included
+            for agent_id, paths in docs.items():
+                if not isinstance(paths, list):
+                    paths = [paths]
+                normalized = [os.path.basename(p) for p in paths]
+                docs[agent_id] = normalized
+            return docs
     return {}
 
 def save_global_docs(docs):
+    """Save the JSON registry of uploaded files."""
     with open(DOC_JSON_PATH, 'w', encoding='utf-8') as f:
         json.dump(docs, f, indent=2)
 
 def preload_documents():
     """
-    Deprecated by load_agent_documents but can be kept for reference if you want
-    to load all documents on disk regardless of saved JSON.
+    Deprecated: use load_agent_documents() instead.
+    Can still load all documents from disk regardless of JSON registry.
     """
     all_docs = {}
-    base_dir = app.config['UPLOAD_FOLDER']  # uploads/VisionaryAutomation
+    base_dir = '/var/data'  # base folder for all agent uploads
 
     if not os.path.exists(base_dir):
         return all_docs
