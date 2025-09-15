@@ -32,14 +32,15 @@ app.secret_key = 'super-secret-key'  # or replace with a stronger one
 # ─── Paths & Uploads ─────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Persistent Disk path (mounted at /var/data in Render)
+# Persistent Disk base path (mounted at /var/data in Render)
 PERSISTENT_DISK_PATH = "/var/data"
-UPLOAD_FOLDER = os.path.join(PERSISTENT_DISK_PATH, "uploads", "VisionaryAutomation")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(PERSISTENT_DISK_PATH, exist_ok=True)
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Flask configuration
+app.config['UPLOAD_FOLDER'] = PERSISTENT_DISK_PATH  # base folder for all agent data
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'docx', 'txt', 'md'}
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max per file
+
 # --- Load Redis from .env ---
 
 REDIS_URL = os.getenv("SESSION_REDIS_URL")  # e.g. redis://default:<password>@<host>:6379
@@ -136,27 +137,24 @@ def preload_documents():
 AGENT_DOCUMENTS = {}
 
 def load_agent_documents():
-    """
-    Loads all uploaded documents for each agent from /var/data into memory.
-    Stores contents in AGENT_DOCUMENTS[agent_id] = [list of file contents].
-    """
     global AGENT_DOCUMENTS
     AGENT_DOCUMENTS = {}
+
     global_docs = load_global_docs()  # JSON registry of uploaded files
 
     for agent_id, relative_paths in global_docs.items():
         if not isinstance(relative_paths, list):
-            relative_paths = [relative_paths]  # fallback for old single-path format
+            relative_paths = [relative_paths]
 
         contents = []
+        agent_folder = os.path.join('/var/data', agent_id)  # base folder for this agent
+        os.makedirs(agent_folder, exist_ok=True)  # ensure folder exists
+
         for rel_path in relative_paths:
-            # Construct full path using /var/data as base
-            full_path = os.path.join('/var/data', agent_id, rel_path)
-            full_path = os.path.normpath(full_path)  # normalize slashes
+            full_path = os.path.normpath(os.path.join(agent_folder, rel_path))
 
             if os.path.exists(full_path):
                 try:
-                    # Read file as UTF-8; if binary, skip
                     with open(full_path, 'r', encoding='utf-8') as f:
                         contents.append(f.read())
                 except UnicodeDecodeError:
