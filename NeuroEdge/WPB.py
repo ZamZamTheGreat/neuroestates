@@ -136,31 +136,38 @@ def preload_documents():
 AGENT_DOCUMENTS = {}
 
 def load_agent_documents():
+    """
+    Loads all uploaded documents for each agent from /var/data into memory.
+    Stores contents in AGENT_DOCUMENTS[agent_id] = [list of file contents].
+    """
     global AGENT_DOCUMENTS
-    global_docs = load_global_docs()
     AGENT_DOCUMENTS = {}
+    global_docs = load_global_docs()  # JSON registry of uploaded files
 
     for agent_id, relative_paths in global_docs.items():
         if not isinstance(relative_paths, list):
             relative_paths = [relative_paths]  # fallback for old single-path format
-        
+
         contents = []
         for rel_path in relative_paths:
-            full_path = os.path.join(app.config['UPLOAD_FOLDER'], rel_path)
-
-            # Normalize path (optional, helps with slashes)
-            full_path = os.path.normpath(full_path)
+            # Construct full path using /var/data as base
+            full_path = os.path.join('/var/data', agent_id, rel_path)
+            full_path = os.path.normpath(full_path)  # normalize slashes
 
             if os.path.exists(full_path):
                 try:
+                    # Read file as UTF-8; if binary, skip
                     with open(full_path, 'r', encoding='utf-8') as f:
                         contents.append(f.read())
+                except UnicodeDecodeError:
+                    print(f"Skipping non-text file for agent '{agent_id}': {full_path}")
                 except Exception as e:
                     print(f"Failed to load document for agent '{agent_id}' at {full_path}: {e}")
             else:
-                print(f"Document path {full_path} for agent '{agent_id}' does not exist")
-        
+                print(f"Document path does not exist for agent '{agent_id}': {full_path}")
+
         AGENT_DOCUMENTS[agent_id] = contents
+
 
 def chat_url_for(agent_name: str) -> str:
     """Absolute link to an agent's chat page."""
@@ -442,8 +449,9 @@ def upload(agent_id):
             flash('File type not allowed', 'error')
             return redirect(url_for('upload', agent_id=agent_id))
         
-        # Ensure upload directory exists
-        upload_dir = get_user_upload_dir(agent_id)  # builds path using app.config['UPLOAD_FOLDER']
+        # Set upload directory to /var/data
+        upload_dir = "/var/data"
+        os.makedirs(upload_dir, exist_ok=True)  # ensure folder exists
         
         # Secure filename with UUID prefix
         filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
@@ -452,8 +460,8 @@ def upload(agent_id):
         # Save uploaded file
         file.save(file_path)
         
-        # Compute relative path from UPLOAD_FOLDER (for JSON storage)
-        relative_path = os.path.relpath(file_path, app.config['UPLOAD_FOLDER'])
+        # Compute relative path from /var/data
+        relative_path = os.path.relpath(file_path, upload_dir)
         
         # Load existing docs JSON
         global_docs = load_global_docs()
