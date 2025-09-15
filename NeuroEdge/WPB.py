@@ -440,7 +440,7 @@ def upload(agent_id):
     if agent_id not in AGENT_CONFIG:
         flash('Unknown agent', 'error')
         return redirect(url_for('home'))
-
+    
     if request.method == 'POST':
         file = request.files.get('docfile')
         if not file or file.filename == '':
@@ -450,19 +450,18 @@ def upload(agent_id):
         if not allowed_file(file.filename):
             flash('File type not allowed', 'error')
             return redirect(url_for('upload', agent_id=agent_id))
-
-        # Correct folder: one per agent
-        upload_dir = get_user_upload_dir(agent_id)  # /var/data/<agent_id>
         
-        # Secure filename
+        # Correct: save under /var/data/<agent_id>/
+        upload_dir = os.path.join('/var/data', agent_id)
+        os.makedirs(upload_dir, exist_ok=True)
+        
         filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
         file_path = os.path.join(upload_dir, filename)
         file.save(file_path)
         
-        # Store **relative path relative to agent folder** only
-        relative_path = filename  # just the file name, no extra folder
+        # Save only the file name in JSON, not full path
+        relative_path = filename
         
-        # Update JSON
         global_docs = load_global_docs()
         if agent_id not in global_docs or not isinstance(global_docs[agent_id], list):
             global_docs[agent_id] = []
@@ -470,15 +469,11 @@ def upload(agent_id):
         save_global_docs(global_docs)
         
         # Refresh in-memory docs
-        data = user_agent_data(agent_id)
-        data['rag_file'] = None
-        data['document_name'] = None
         load_agent_documents()
         
-        session.modified = True
         flash('File uploaded', 'success')
         return redirect(url_for('chat', agent_id=agent_id))
-
+    
     return render_template('upload.html', agent_id=agent_id)
 
 @app.route('/reset/<agent_id>', methods=['POST'])
