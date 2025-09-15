@@ -135,7 +135,6 @@ def preload_documents():
 
 # Global dictionary to hold loaded docs content
 AGENT_DOCUMENTS = {}
-
 def load_agent_documents():
     global AGENT_DOCUMENTS
     AGENT_DOCUMENTS = {}
@@ -448,7 +447,7 @@ def upload(agent_id):
             return redirect(url_for('upload', agent_id=agent_id))
         
         # Set upload directory to /var/data
-        upload_dir = "/var/data"
+        upload_dir = get_user_upload_dir(agent_id)  # /var/data/<agent_id>
         os.makedirs(upload_dir, exist_ok=True)  # ensure folder exists
         
         # Secure filename with UUID prefix
