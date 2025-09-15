@@ -13,31 +13,54 @@ from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from flask import make_response
 from openai import OpenAI
+import requests
 from markupsafe import escape
 
 app = Flask(__name__)
 app.jinja_env.globals['now'] = datetime.now
 app.config['SESSION_COOKIE_SECURE'] = True
 
-
-
-
 # ─── Setup ───────────────────────────────────────────────────────────────────
 load_dotenv()
+
+# ─── Paths & Uploads ─────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads', 'VisionaryAutomation')
 
+# ─── Flask app config ───────────────────────────────────────────────────────
+app.secret_key = 'super-secret-key'  # or replace with a stronger one
+# ─── Paths & Uploads ─────────────────────────────────────────────────────────
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-app.secret_key = os.getenv('FLASK_SECRET_KEY')
+# Persistent Disk path (mounted at /var/data in Render)
+PERSISTENT_DISK_PATH = "/var/data"
+UPLOAD_FOLDER = os.path.join(PERSISTENT_DISK_PATH, "uploads", "VisionaryAutomation")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['ALLOWED_EXTENSIONS'] = {'pdf','docx','txt','md'}
+app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'docx', 'txt', 'md'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-app.config['SESSION_TYPE'] = os.getenv('SESSION_TYPE', 'filesystem')
-app.config['SESSION_REDIS'] = redis.from_url(os.getenv('SESSION_REDIS_URL', 'redis://localhost:6379/0')) if app.config['SESSION_TYPE'] == 'redis' else None
-app.config['SESSION_PERMANENT'] = False
-app.config['SESSION_USE_SIGNER'] = True
+# --- Load Redis from .env ---
 
+REDIS_URL = os.getenv("SESSION_REDIS_URL")  # e.g. redis://default:<password>@<host>:6379
+
+try:
+    # Use decode_responses=False for binary-safe session storage
+    r = redis.from_url(REDIS_URL, decode_responses=False)
+    r.ping()
+    app.config['SESSION_TYPE'] = 'redis'
+    app.config['SESSION_REDIS'] = r
+    app.config['SESSION_PERMANENT'] = False
+    app.config['SESSION_USE_SIGNER'] = True
+    Session(app)
+    print("✅ Using Redis for sessions")
+except Exception as e:
+    print(f"⚠️ Redis connection failed: {e}. Using filesystem sessions")
+    app.config['SESSION_TYPE'] = 'filesystem'
+    app.config['SESSION_REDIS'] = None
 Session(app)
+
+# ─── OpenAI API Key ─────────────────────────────────────────────────────────
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # ─── Login ───────────────────────────────────────────────────────────────────
@@ -56,6 +79,7 @@ def load_user(uid):
     return User(uid) if uid == os.getenv('ADMIN_USERNAME') else None
 
 # ─── Utilities ───────────────────────────────────────────────────────────────
+
 DOC_JSON_PATH = os.path.join(BASE_DIR, "agent_docs.json")
 
 def load_prompt(name):
@@ -149,10 +173,8 @@ def chat_url_for(agent_name: str) -> str:
     
 # ─── Agents ──────────────────────────────────────────────────────────────────
 AGENT_CONFIG = {
-    'Christopher Grant Van Wyk-AI':  {'system_prompt': load_prompt('Christopher')},
     'Wilne Van Wyk-AI': {'system_prompt':load_prompt('Wilne')},
     'Sergej-AI': {'system_prompt':load_prompt('sergej')},
-    'Simone-AI': {'system_prompt': load_prompt('Simone')},
     'Search-AI': {'system_prompt': load_prompt('Search')},
     'Head of property-AI': {'system_prompt': load_prompt('Head of Property')},
 }
