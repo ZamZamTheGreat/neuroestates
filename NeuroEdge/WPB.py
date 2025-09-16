@@ -81,7 +81,7 @@ def load_user(uid):
     return User(uid) if uid == os.getenv('ADMIN_USERNAME') else None
 
 # ─── Utilities ───────────────────────────────────────────────────────────────
-
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DOC_JSON_PATH = os.path.join(BASE_DIR, "agent_docs.json")
 
 def load_prompt(name):
