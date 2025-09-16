@@ -24,13 +24,14 @@ app.config['SESSION_COOKIE_SECURE'] = True
 load_dotenv()
 
 # ─── Paths & Uploads ─────────────────────────────────────────────────────────
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads', 'VisionaryAutomation')
+BASE_DIR = '/var/data'  # all agent data stored here
+UPLOAD_FOLDER = BASE_DIR  # same as /var/data, each agent gets a subfolder
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # ensure folder exists
+
 
 # ─── Flask app config ───────────────────────────────────────────────────────
 app.secret_key = 'super-secret-key'  # or replace with a stronger one
 # ─── Paths & Uploads ─────────────────────────────────────────────────────────
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Persistent Disk base path (mounted at /var/data in Render)
 PERSISTENT_DISK_PATH = "/var/data"
@@ -97,21 +98,20 @@ def allowed_file(filename):
 
 def get_user_upload_dir(agent_id):
     """Return the agent-specific folder under /var/data and ensure it exists."""
-    path = os.path.join('/var/data', agent_id)
+    path = os.path.join(UPLOAD_FOLDER, agent_id)
     os.makedirs(path, exist_ok=True)
     return path
 
 def load_global_docs():
-    """Load the JSON registry of uploaded files."""
+    """Load the JSON registry of uploaded files (filenames only)."""
     if os.path.exists(DOC_JSON_PATH):
         with open(DOC_JSON_PATH, 'r', encoding='utf-8') as f:
             docs = json.load(f)
-            # Normalize old paths: strip agent folder if mistakenly included
+            # Normalize old paths: store only the filename, no folder nesting
             for agent_id, paths in docs.items():
                 if not isinstance(paths, list):
                     paths = [paths]
-                normalized = [os.path.basename(p) for p in paths]
-                docs[agent_id] = normalized
+                docs[agent_id] = [os.path.basename(p) for p in paths]
             return docs
     return {}
 
@@ -122,19 +122,18 @@ def save_global_docs(docs):
 
 def preload_documents():
     """
-    Deprecated: use load_agent_documents() instead.
-    Can still load all documents from disk regardless of JSON registry.
+    Loads all agent documents from disk (deprecated; use load_agent_documents()).
+    Returns a dict of {agent_id: [file_contents]}.
     """
     all_docs = {}
-    base_dir = '/var/data'  # base folder for all agent uploads
-
-    if not os.path.exists(base_dir):
+    if not os.path.exists(UPLOAD_FOLDER):
         return all_docs
 
-    for agent_id in os.listdir(base_dir):
-        agent_dir = os.path.join(base_dir, agent_id)
+    for agent_id in os.listdir(UPLOAD_FOLDER):
+        agent_dir = os.path.join(UPLOAD_FOLDER, agent_id)
         if not os.path.isdir(agent_dir):
             continue
+
         for filename in os.listdir(agent_dir):
             if not allowed_file(filename):
                 continue
@@ -145,10 +144,12 @@ def preload_documents():
                 all_docs.setdefault(agent_id, []).append(content)
             except Exception as e:
                 print(f"Error reading {file_path}: {e}")
+
     return all_docs
 
 # Global dictionary to hold loaded docs content
 AGENT_DOCUMENTS = {}
+
 def load_agent_documents():
     """
     Loads all agent documents from /var/data/<agent_id>/ and stores
@@ -161,14 +162,13 @@ def load_agent_documents():
 
     for agent_id, file_names in global_docs.items():
         if not isinstance(file_names, list):
-            file_names = [file_names]  # ensure list
+            file_names = [file_names]
 
         contents = []
-        agent_folder = os.path.join('/var/data', agent_id)  # agent-specific folder
-        os.makedirs(agent_folder, exist_ok=True)  # ensure folder exists
+        agent_folder = os.path.join(UPLOAD_FOLDER, agent_id)
+        os.makedirs(agent_folder, exist_ok=True)
 
         for file_name in file_names:
-            # Only join with agent_folder, no double agent folder
             full_path = os.path.normpath(os.path.join(agent_folder, file_name))
 
             if os.path.exists(full_path):
@@ -454,40 +454,40 @@ def upload(agent_id):
     if agent_id not in AGENT_CONFIG:
         flash('Unknown agent', 'error')
         return redirect(url_for('home'))
-    
+
     if request.method == 'POST':
         file = request.files.get('docfile')
-        if not file or file.filename == '':
+        if not file or file.filename.strip() == '':
             flash('No file selected', 'error')
             return redirect(url_for('upload', agent_id=agent_id))
-        
+
         if not allowed_file(file.filename):
             flash('File type not allowed', 'error')
             return redirect(url_for('upload', agent_id=agent_id))
-        
-        # Correct: save under /var/data/<agent_id>/
-        upload_dir = os.path.join('/var/data', agent_id)
-        os.makedirs(upload_dir, exist_ok=True)
-        
+
+        # Save to /var/data/<agent_id>/
+        upload_dir = get_user_upload_dir(agent_id)  # ensures directory exists
         filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
         file_path = os.path.join(upload_dir, filename)
-        file.save(file_path)
-        
-        # Save only the file name in JSON, not full path
-        relative_path = filename
-        
+
+        try:
+            file.save(file_path)
+        except Exception as e:
+            flash(f"Error saving file: {e}", 'error')
+            return redirect(url_for('upload', agent_id=agent_id))
+
+        # Update JSON registry with filename only
         global_docs = load_global_docs()
-        if agent_id not in global_docs or not isinstance(global_docs[agent_id], list):
-            global_docs[agent_id] = []
-        global_docs[agent_id].append(relative_path)
+        global_docs.setdefault(agent_id, [])
+        global_docs[agent_id].append(filename)
         save_global_docs(global_docs)
-        
-        # Refresh in-memory docs
+
+        # Refresh in-memory documents
         load_agent_documents()
-        
-        flash('File uploaded', 'success')
+
+        flash('File uploaded successfully.', 'success')
         return redirect(url_for('chat', agent_id=agent_id))
-    
+
     return render_template('upload.html', agent_id=agent_id)
 
 @app.route('/reset/<agent_id>', methods=['POST'])
