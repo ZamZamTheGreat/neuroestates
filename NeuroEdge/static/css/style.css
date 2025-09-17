@@ -438,162 +438,187 @@
       outline: none;
       color: var(--primary-dark);
       background-color: var(--accent);
+    
     }
+    /* Global scaling tweaks */
+    body, input, button, select, textarea {
+      font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+    }
+
+    .message {
+      max-width: 80%;
+      font-size: clamp(0.9rem, 2vw, 1.05rem);
+      padding: clamp(0.6rem, 1vw, 1rem);
+      word-wrap: break-word;
+    }
+
+    .agent-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: clamp(0.5rem, 1vw, 1.5rem);
+    }
+
+    button#submit-btn, form#chat-form input {
+      font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+      padding: clamp(0.6rem, 1vw, 1rem) clamp(1rem, 2vw, 1.5rem);
+      min-width: 90px;
+    }
+
 
     /* Responsive */
     @media (max-width: 768px) {
       }
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: system-ui, sans-serif;
-}
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, sans-serif;
+    }
 
-.agent-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  max-width: var(--chat-max-width);
-  margin: 1rem auto 3rem;
-  padding: 0 1rem;
-}
+    .agent-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      max-width: var(--chat-max-width);
+      margin: 1rem auto 3rem;
+      padding: 0 1rem;
+    }
 
-.message {
-  max-width: 90%;
-  width: fit-content;
-  padding: 0.6rem 1rem;
-  margin: 0.4rem 0;
-  border-radius: 12px;
-  word-wrap: break-word;
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
-}
+    .message {
+      max-width: 90%;
+      width: fit-content;
+      padding: 0.6rem 1rem;
+      margin: 0.4rem 0;
+      border-radius: 12px;
+      word-wrap: break-word;
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+    }
 
-#chat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-width: var(--chat-max-width);
-  margin: 0 auto;
-  padding: 1rem;
-  box-sizing: border-box;
-}
+    #chat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: var(--chat-max-width);
+      margin: 0 auto;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
 
-form#chat-form {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  padding: 0.8rem 1rem;
-  max-width: var(--chat-max-width);
-  margin: 0 auto 1rem;
-  box-sizing: border-box;
-}
+    form#chat-form {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      padding: 0.8rem 1rem;
+      max-width: var(--chat-max-width);
+      margin: 0 auto 1rem;
+      box-sizing: border-box;
+    }
 
-form#chat-form input[name="user_input"] {
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 0.6rem 1rem;
-  font-size: clamp(0.9rem, 2vw, 1rem);
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-}
+    form#chat-form input[name="user_input"] {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 0.6rem 1rem;
+      font-size: clamp(0.9rem, 2vw, 1rem);
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
 
-form#chat-form button {
-  padding: 0.6rem 1rem;
-  font-size: clamp(0.9rem, 2vw, 1rem);
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-}
+     form#chat-form button {
+      padding: 0.6rem 1rem;
+      font-size: clamp(0.9rem, 2vw, 1rem);
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+    }
 
-.document-info {
-  max-width: 95%;
-}
-
-.nav-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-}
-
-.nav-button {
-  font-size: clamp(0.85rem, 2vw, 1rem);
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-}
-
-.quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.quick-action {
-  padding: 0.35rem 0.8rem;
-  font-size: clamp(0.8rem, 2vw, 0.85rem);
-  border-radius: 8px;
-}
-
-/* Extra small screens (phones) */
-@media (max-width: 480px) {
-  .agent-list {
-    grid-template-columns: 1fr;
-    margin: 1rem auto 2rem;
-    padding: 0 0.5rem;
+    .document-info {
+    max-width: 95%;
   }
 
-  #chat {
-    padding: 0.5rem;
+  .nav-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
   }
 
-  form#chat-form {
-    padding: 0.5rem;
+  .nav-button {
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
   }
 
-  form#chat-form input[name="user_input"] {
+  .quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .quick-action {
+    padding: 0.35rem 0.8rem;
+    font-size: clamp(0.8rem, 2vw, 0.85rem);
+    border-radius: 8px;
+  }
+
+  /* Extra small screens (phones) */
+  @media (max-width: 480px) {
+    .agent-list {
+     grid-template-columns: 1fr;
+     margin: 1rem auto 2rem;
+     padding: 0 0.5rem;
+    }
+
+    #chat {
+      padding: 0.5rem;
+    }
+
+    form#chat-form {
+      padding: 0.5rem;
+    }
+
+    form#chat-form input[name="user_input"] {
     font-size: 1rem;
   }
 
-  form#chat-form button {
-    font-size: 1rem;
-    padding: 0.6rem 0.8rem;
+    form#chat-form button {
+     font-size: 1rem;
+     padding: 0.6rem 0.8rem;
+    }
   }
-}
     /* Base wrapper for proportional scaling */
-.page-wrapper {
-  max-width: 1200px;   /* max width for desktop */
-  margin: 0 auto;
-  transform-origin: top center;
-  width: 100%;
-}
-
-/* Scale down proportionally based on viewport width */
-@media (max-width: 1200px) {
   .page-wrapper {
-    transform: scale(calc(100vw / 1200));
+    max-width: 1200px;   /* max width for desktop */
+    margin: 0 auto;
+    transform-origin: top center;
+    width: 100%;
   }
-}
 
-/* Ensure the page grows vertically as needed */
-body, html {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
+  /* Scale down proportionally based on viewport width */
+  @media (max-width: 1200px) {
+    .page-wrapper {
+      transform: scale(calc(100vw / 1200));
+    }
+  }
 
-/* Make chat container and agent list adapt to wrapper */
-#chat, .agent-list, form#chat-form {
-  width: 100%;
-  box-sizing: border-box;
-}
+  /* Ensure the page grows vertically as needed */
+  body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
 
-/* Optional: smooth font scaling */
-body, input, button, select, textarea {
-  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-}
+  /* Make chat container and agent list adapt to wrapper */
+  #chat, .agent-list, form#chat-form {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Optional: smooth font scaling */
+  body, input, button, select, textarea {
+    font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  }
 
     .suggested-questions {
       display: flex;
