@@ -562,7 +562,39 @@ form#chat-form button {
     padding: 0.6rem 0.8rem;
   }
 }
-    
+    /* Base wrapper for proportional scaling */
+.page-wrapper {
+  max-width: 1200px;   /* max width for desktop */
+  margin: 0 auto;
+  transform-origin: top center;
+  width: 100%;
+}
+
+/* Scale down proportionally based on viewport width */
+@media (max-width: 1200px) {
+  .page-wrapper {
+    transform: scale(calc(100vw / 1200));
+  }
+}
+
+/* Ensure the page grows vertically as needed */
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Make chat container and agent list adapt to wrapper */
+#chat, .agent-list, form#chat-form {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Optional: smooth font scaling */
+body, input, button, select, textarea {
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+}
+
     .suggested-questions {
       display: flex;
       justify-content: center;
