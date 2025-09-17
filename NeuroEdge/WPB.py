@@ -82,7 +82,7 @@ def load_user(uid):
 
 # ─── Utilities ───────────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DOC_JSON_PATH = os.path.join(BASE_DIR, "agent_docs.json")
+DOC_JSON_PATH = '/var/data/global_docs.json'
 
 def load_prompt(name):
     """Load system prompt text for a given agent."""
@@ -93,8 +93,9 @@ def load_prompt(name):
     return ""
 
 def allowed_file(filename):
-    """Check if file has an allowed extension."""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+    """Check if the file type is allowed."""
+    ALLOWED_EXTENSIONS = {'txt', 'pdf', 'md', 'csv'}  # adjust as needed
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_user_upload_dir(agent_id):
     """Return the agent-specific folder under /var/data and ensure it exists."""
@@ -103,11 +104,11 @@ def get_user_upload_dir(agent_id):
     return path
 
 def load_global_docs():
-    """Load the JSON registry of uploaded files (filenames only)."""
+    """Load JSON registry of uploaded files."""
     if os.path.exists(DOC_JSON_PATH):
         with open(DOC_JSON_PATH, 'r', encoding='utf-8') as f:
             docs = json.load(f)
-            # Normalize old paths: store only the filename, no folder nesting
+            # Normalize paths to just filenames
             for agent_id, paths in docs.items():
                 if not isinstance(paths, list):
                     paths = [paths]
@@ -116,7 +117,7 @@ def load_global_docs():
     return {}
 
 def save_global_docs(docs):
-    """Save the JSON registry of uploaded files."""
+    """Save the JSON registry."""
     with open(DOC_JSON_PATH, 'w', encoding='utf-8') as f:
         json.dump(docs, f, indent=2)
 
@@ -152,39 +153,49 @@ AGENT_DOCUMENTS = {}
 
 def load_agent_documents():
     """
-    Loads all agent documents from /var/data/<agent_id>/ and stores
-    their content in AGENT_DOCUMENTS, keyed by agent_id.
+    Load all agent documents from /var/data/<agent_id>/ into AGENT_DOCUMENTS.
+    Works with files manually placed or uploaded via the app.
     """
     global AGENT_DOCUMENTS
     AGENT_DOCUMENTS = {}
 
-    global_docs = load_global_docs()  # JSON registry of uploaded files
+    base_dir = '/var/data'
+    global_docs = load_global_docs()
 
-    for agent_id, file_names in global_docs.items():
-        if not isinstance(file_names, list):
-            file_names = [file_names]
+    if not os.path.exists(base_dir):
+        print("Persistent disk not found at /var/data")
+        return
+
+    for agent_id in os.listdir(base_dir):
+        agent_folder = os.path.join(base_dir, agent_id)
+        if not os.path.isdir(agent_folder):
+            continue
 
         contents = []
-        agent_folder = os.path.join(UPLOAD_FOLDER, agent_id)
-        os.makedirs(agent_folder, exist_ok=True)
 
-        for file_name in file_names:
-            full_path = os.path.normpath(os.path.join(agent_folder, file_name))
+        # First, load all files in the agent folder
+        for filename in os.listdir(agent_folder):
+            file_path = os.path.join(agent_folder, filename)
+            if not allowed_file(filename):
+                continue
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    contents.append(f.read())
+            except UnicodeDecodeError:
+                print(f"Skipping non-text file for agent '{agent_id}': {file_path}")
+            except Exception as e:
+                print(f"Failed to load document for agent '{agent_id}' at {file_path}: {e}")
 
-            if os.path.exists(full_path):
-                try:
-                    with open(full_path, 'r', encoding='utf-8') as f:
-                        contents.append(f.read())
-                except UnicodeDecodeError:
-                    print(f"Skipping non-text file for agent '{agent_id}': {full_path}")
-                except Exception as e:
-                    print(f"Failed to load document for agent '{agent_id}' at {full_path}: {e}")
-            else:
-                print(f"Document path does not exist for agent '{agent_id}': {full_path}")
+        # Update the global JSON registry if missing
+        existing_files = global_docs.get(agent_id, [])
+        for filename in os.listdir(agent_folder):
+            if filename not in existing_files:
+                global_docs.setdefault(agent_id, []).append(filename)
+        save_global_docs(global_docs)
 
         AGENT_DOCUMENTS[agent_id] = contents
 
-
+    print("All agent documents loaded from /var/data")
 def chat_url_for(agent_name: str) -> str:
     """Absolute link to an agent's chat page."""
     try:
