@@ -929,41 +929,77 @@ button {
   color: white;
   box-shadow: 0 0 10px var(--primary-light);
 }
-/* Make buttons and text bigger on mobile */
-@media (max-width: 768px) {
-  body {
-    font-size: 16px; /* default text size */
-  }
+/* =====================================================
+   RESPONSIVE LAYOUT FIXES (drop at bottom of CSS)
+   ===================================================== */
 
-  button, .btn {
-    font-size: 16px;
-    padding: 12px 20px;
-  }
-
-  input[type="text"], textarea {
-    font-size: 16px;
-    padding: 12px;
-  }
-
-  .chat-container {
-    padding: 12px;
-  }
-
-  .suggested-questions button {
-    font-size: 14px;
-    padding: 10px 15px;
-    margin: 5px 3px;
-  }
+/* --- General page wrapper --- */
+.page-wrapper {
+  width: 100%;
+  max-width: 1200px; /* keeps centered on large screens */
+  margin: 0 auto;
+  padding-left: clamp(0.8rem, 2vw, 2rem);
+  padding-right: clamp(0.8rem, 2vw, 2rem);
+  box-sizing: border-box;
+}
+/* --- Suggested questions row --- */
+.suggested-questions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.5rem, 1vw, 1rem);
+  justify-content: center;
+  margin: 1rem auto;
+  max-width: 100%;
 }
 
-/* Larger devices (tablets & desktops) */
-@media (min-width: 769px) {
-  body {
-    font-size: 18px;
+/* --- Navigation buttons row --- */
+.nav-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.5rem, 1vw, 1rem);
+  justify-content: center;
+  margin: 1rem auto;
+  max-width: 100%;
+}
+
+/* --- Chat form row (input + button) --- */
+#chat-form {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+  margin: 1rem auto;
+}
+
+#chat-form input[name="user_input"] {
+  flex: 1; /* input grows */
+  min-width: 0; /* prevents overflow */
+}
+
+#chat-form button {
+  flex-shrink: 0; /* button keeps its size */
+}
+
+/* --- Mobile adjustments --- */
+@media (max-width: 600px) {
+  header {
+    padding: 0.5rem 0;
   }
 
-  button, .btn {
-    font-size: 18px;
-    padding: 14px 24px;
+  .suggested-questions,
+  .nav-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #chat-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #chat-form input[name="user_input"],
+  #chat-form button {
+    width: 100%; /* full width on mobile */
   }
 }
