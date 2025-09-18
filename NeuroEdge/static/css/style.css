@@ -929,3 +929,41 @@ button {
   color: white;
   box-shadow: 0 0 10px var(--primary-light);
 }
+/* Make buttons and text bigger on mobile */
+@media (max-width: 768px) {
+  body {
+    font-size: 16px; /* default text size */
+  }
+
+  button, .btn {
+    font-size: 16px;
+    padding: 12px 20px;
+  }
+
+  input[type="text"], textarea {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .chat-container {
+    padding: 12px;
+  }
+
+  .suggested-questions button {
+    font-size: 14px;
+    padding: 10px 15px;
+    margin: 5px 3px;
+  }
+}
+
+/* Larger devices (tablets & desktops) */
+@media (min-width: 769px) {
+  body {
+    font-size: 18px;
+  }
+
+  button, .btn {
+    font-size: 18px;
+    padding: 14px 24px;
+  }
+}
