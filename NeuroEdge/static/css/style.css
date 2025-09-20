@@ -368,21 +368,23 @@
       cursor: not-allowed;
     }
     .nav-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin: 1.5rem 0 1rem;
-      user-select: none;
-      flex-wrap: wrap;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin: 1.5rem 0 1rem;
+        user-select: none;
+        flex-wrap: wrap;
     }
 
-    .nav-button {
-      flex: 1 1 160px;            /* grow/shrink, but min size 160px */
-      max-width: 200px;           /* keeps them from getting too wide */
-      display: flex;              /* ensures icon + text align neatly */
+  .nav-button {
+     /* Fixed size for all buttons */
+      width: 160px;
+      min-height: 50px;
+
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.5rem;                /* spacing between emoji/icon & text */
+      gap: 0.5rem;
 
       background-color: var(--primary-light);
       border: none;
@@ -397,13 +399,46 @@
       box-shadow: 0 3px 10px rgba(212, 214, 0, 0.5);
       transition: background-color 0.25s ease, transform 0.2s ease;
       white-space: nowrap;
-
-      /* Makes <a> tags behave exactly like <button> */
+    
+    /* Makes <a> tags behave exactly like <button> */
       text-decoration: none;
     }
 
   .nav-button:hover,
   .nav-button:focus {
+    background-color: var(--accent);
+    color: var(--primary-dark);
+    outline: none;
+  }
+
+  /* Responsive adjustments - keep row layout but adjust spacing */
+  @media (max-width: 768px) {
+      .nav-buttons {
+          gap: 0.75rem;
+      }
+    
+      .nav-button {
+          width: 150px; /* Slightly smaller on mobile */
+          font-size: 0.95rem;
+          padding: 0.65rem 0.9rem;
+      }
+    }
+
+  /* For very small screens - keep row layout but allow wrapping */
+  @media (max-width: 480px) {
+    .nav-buttons {
+        gap: 0.5rem;
+    }
+    
+    .nav-button {
+        width: 140px;
+        font-size: 0.9rem;
+        padding: 0.6rem 0.8rem;
+    }
+}
+
+    .nav-button:hover,
+    .nav-button:focus {
       background-color: var(--accent);
       color: var(--primary-dark);
       outline: none;
