@@ -368,19 +368,19 @@
       cursor: not-allowed;
     }
     .nav-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        margin: 1.5rem 0 1rem;
-        user-select: none;
-        flex-wrap: wrap;
-    }
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1.5rem 0 1rem;
+      user-select: none;
+      flex-wrap: wrap;
+  }
 
-  .nav-button {
-     /* Fixed size for all buttons */
-      width: 160px;
-      min-height: 50px;
-
+   .nav-button {
+      /* Fixed size for all buttons */
+     width: 160px;
+     min-height: 50px;
+    
       display: flex;
       align-items: center;
       justify-content: center;
@@ -400,9 +400,9 @@
       transition: background-color 0.25s ease, transform 0.2s ease;
       white-space: nowrap;
     
-    /* Makes <a> tags behave exactly like <button> */
-      text-decoration: none;
-    }
+     /* Makes <a> tags behave exactly like <button> */
+     text-decoration: none;
+  }
 
   .nav-button:hover,
   .nav-button:focus {
@@ -411,32 +411,31 @@
     outline: none;
   }
 
-  /* Responsive adjustments - keep row layout but adjust spacing */
+  /* Keep buttons in a row on mobile */
   @media (max-width: 768px) {
-      .nav-buttons {
-          gap: 0.75rem;
-      }
-    
-      .nav-button {
-          width: 150px; /* Slightly smaller on mobile */
-          font-size: 0.95rem;
-          padding: 0.65rem 0.9rem;
-      }
-    }
-
-  /* For very small screens - keep row layout but allow wrapping */
-  @media (max-width: 480px) {
     .nav-buttons {
         gap: 0.5rem;
+        flex-wrap: nowrap; /* Prevent wrapping to new line */
+        overflow-x: auto; /* Allow horizontal scrolling if needed */
+        justify-content: flex-start; /* Align to start instead of center */
+        padding-bottom: 0.5rem; /* Space for scroll if needed */
     }
     
     .nav-button {
+        flex: 0 0 auto; /* Don't grow or shrink, use explicit width */
         width: 140px;
         font-size: 0.9rem;
-        padding: 0.6rem 0.8rem;
     }
 }
 
+  /* For very small screens */
+  @media (max-width: 480px) {
+      .nav-button {
+        width: 120px;
+        font-size: 0.85rem;
+        padding: 0.6rem 0.7rem;
+    }
+  }
     .nav-button:hover,
     .nav-button:focus {
       background-color: var(--accent);
