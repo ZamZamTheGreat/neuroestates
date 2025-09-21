@@ -997,7 +997,7 @@ button {
   .agent-selector {
     font-size: 0.85rem;
   }
-/* ===== NAVIGATION BUTTONS - EXACT SAME SIZE ===== */
+/* ===== NAVIGATION BUTTONS - HORIZONTAL ROW ===== */
 .nav-buttons {
     display: flex;
     justify-content: center;
@@ -1007,6 +1007,7 @@ button {
     flex-wrap: nowrap;
     overflow-x: auto;
     padding: 0.5rem 0;
+    flex-direction: row; /* Ensure horizontal layout */
 }
 
 /* Style for all nav buttons */
@@ -1057,11 +1058,13 @@ button {
     transform: translateY(-2px);
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments - ensure horizontal layout on all screens */
 @media (max-width: 768px) {
     .nav-buttons {
         gap: 0.75rem;
         justify-content: center;
+        flex-direction: row; /* Force horizontal layout */
+        flex-wrap: nowrap; /* Prevent wrapping */
     }
     
     .nav-button,
@@ -1079,6 +1082,9 @@ button {
 @media (max-width: 480px) {
     .nav-buttons {
         gap: 0.5rem;
+        justify-content: center;
+        flex-direction: row; /* Force horizontal layout */
+        flex-wrap: nowrap; /* Prevent wrapping */
     }
     
     .nav-button,
@@ -1089,5 +1095,18 @@ button {
     
     .nav-button {
         font-size: 0.85rem;
+    }
+}
+
+/* Override any existing column layout rules */
+.nav-buttons {
+    flex-direction: row !important;
+    align-items: center !important;
+}
+
+@media (max-width: 768px) {
+    .nav-buttons {
+        flex-direction: row !important;
+        align-items: center !important;
     }
 }}
