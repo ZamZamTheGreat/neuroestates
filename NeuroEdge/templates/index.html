@@ -75,6 +75,14 @@
           </div>
         </div>
       {% endif %}
+      {% if agent_id != 'Search-AI' %}
+     <div class="suggested-questions" id="suggested-questions">
+         <h4>💡 Suggested Questions:</h4>
+          <div class="suggestion-bubbles">
+            <button class="suggestion-bubble" onclick="sendSuggested('What can you help me with exactly?')">What can you help me with exactly?</button>
+         </div>
+        </div>
+      {% endif %}
 
       <!-- Chat -->
       <main id="chat">
