@@ -210,6 +210,11 @@ AGENT_CONFIG = {
     'Wilne Van Wyk-AI': {'system_prompt':load_prompt('Wilne')},
     'Sergej-AI': {'system_prompt':load_prompt('sergej')},
     'Search-AI': {'system_prompt': load_prompt('Search')},
+    'Obert Nortje-AI': {'system_prompt': load_prompt('Obert Nortje')},
+    'Christopher Grant Van Wyk-AI': {'system_prompt': load_prompt('Christopher Grant Van Wyk')},
+    'Simon-AI': {'system_prompt': load_prompt('Simon')},
+    'Carl-AI': {'system_prompt':load_prompt('Carl')},
+    'Ruanca-AI': {'system_prompt':load_prompt('Ruanca')},
     'Head of property-AI': {'system_prompt': load_prompt('Head of Property')},
 }
 global_docs = load_global_docs()

@@ -24,7 +24,7 @@
       </div>
 
       <div class="header-center">
-        <img src="{{ url_for('static', filename='NeuroEdge-logo.png') }}" alt="NeuroEdge Logo" class="logo">
+        <img src="{{ url_for('static', filename='NeuroEdge-logo.png') }}" alt="NeuroEdge-Logo" class="logo">
         <h1 class="site-title">{% if agent_id %}{{ agent_id }}{% else %}NeuroEdge Investments{% endif %}</h1>
         {% if not agent_id %}
           <div class="agent-selector">Select an agent to begin chatting</div>
@@ -72,7 +72,7 @@
           <h4>💡 Suggested Questions:</h4>
           <div class="suggestion-bubbles">
             <button onclick="sendSuggested('What can you help me with exactly?')">What can you help me with exactly?</button>
-            <button onclick="sendSuggested('How do I list a Property?')">How do I list a Property?</button>
+            <button onclick="sendSuggested('Why should I chat to you and not the agent directly?')">Why should I chat to you and not the agent directly?</button>
           </div>
         </div>
       {% endif %}
@@ -137,7 +137,7 @@
       document.getElementById('chat-form').submit();
     }
 
-    // Search functionality with auto-suggestions
+        // Search functionality with auto-suggestions
     document.addEventListener('DOMContentLoaded', function() {
       const searchInput = document.getElementById('searchInput');
       const suggestionsList = document.getElementById('suggestions');
@@ -147,18 +147,77 @@
       const agentCards = agentGrid ? Array.from(agentGrid.getElementsByClassName('agent-card')) : [];
       const agentNames = agentCards.map(card => card.textContent.trim());
       
-      if (searchInput && suggestionsList) {
-        // Show suggestions when input is focused
-        searchInput.addEventListener('focus', function() {
-          showAllSuggestions();
+      // Filter agents based on search
+      function filterAgents(searchText) {
+        const searchLower = searchText.toLowerCase();
+        
+        agentCards.forEach(card => {
+          const agentName = card.textContent.trim().toLowerCase();
+          if (agentName.includes(searchLower)) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      }
+      
+      // Display suggestions in the dropdown
+      function displaySuggestions(suggestions) {
+        suggestionsList.innerHTML = '';
+        
+        if (suggestions.length === 0) {
+          suggestionsList.style.display = 'none';
+          return;
+        }
+        
+        suggestions.forEach(suggestion => {
+          const div = document.createElement('div');
+          div.className = 'suggestion-item';
+          div.textContent = suggestion;
+          div.addEventListener('click', function() {
+            searchInput.value = suggestion;
+            filterAgents(suggestion);
+            suggestionsList.style.display = 'none';
+            
+            // Find and highlight the agent card
+            const targetCard = agentCards.find(card => 
+              card.textContent.trim() === suggestion
+            );
+            
+            if (targetCard) {
+              // Remove any existing highlights
+              agentCards.forEach(card => card.classList.remove('highlighted'));
+              
+              // Add highlight to the target card
+              targetCard.classList.add('highlighted');
+              
+              // Scroll to the card
+              targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              // Remove highlight after 3 seconds
+              setTimeout(() => {
+                targetCard.classList.remove('highlighted');
+              }, 3000);
+            }
+          });
+          suggestionsList.appendChild(div);
         });
         
-        // Filter suggestions based on input
+        suggestionsList.style.display = 'flex';
+      }
+      
+      if (searchInput && suggestionsList) {
+        // Show suggestions when user starts typing
         searchInput.addEventListener('input', function() {
           const searchText = this.value.toLowerCase();
           
           if (searchText.length === 0) {
-            showAllSuggestions();
+            suggestionsList.style.display = 'none';
+            // Show all agents if search is empty
+            agentCards.forEach(card => {
+              card.style.display = 'block';
+              card.classList.remove('highlighted');
+            });
             return;
           }
           
@@ -167,6 +226,7 @@
           );
           
           displaySuggestions(filteredSuggestions);
+          filterAgents(searchText);
         });
         
         // Hide suggestions when clicking outside
@@ -176,53 +236,18 @@
           }
         });
         
-        // Show all agents when search is cleared
-        function showAllSuggestions() {
-          displaySuggestions(agentNames);
-        }
-        
-        // Display suggestions in the dropdown
-        function displaySuggestions(suggestions) {
-          suggestionsList.innerHTML = '';
-          
-          if (suggestions.length === 0) {
-            suggestionsList.style.display = 'none';
-            return;
+        // Show suggestions when input is focused and has text
+        searchInput.addEventListener('focus', function() {
+          if (this.value.length > 0) {
+            const searchText = this.value.toLowerCase();
+            const filteredSuggestions = agentNames.filter(name => 
+              name.toLowerCase().includes(searchText)
+            );
+            displaySuggestions(filteredSuggestions);
           }
-          
-          suggestions.forEach(suggestion => {
-            const div = document.createElement('div');
-            div.className = 'suggestion-item';
-            div.textContent = suggestion;
-            div.addEventListener('click', function() {
-              searchInput.value = suggestion;
-              filterAgents(suggestion);
-              suggestionsList.style.display = 'none';
-            });
-            suggestionsList.appendChild(div);
-          });
-          
-          suggestionsList.style.display = 'block';
-        }
-        
-        // Filter agents based on search
-        function filterAgents(searchText) {
-          const searchLower = searchText.toLowerCase();
-          
-          agentCards.forEach(card => {
-            const agentName = card.textContent.trim().toLowerCase();
-            if (agentName.includes(searchLower)) {
-              card.style.display = 'block';
-            } else {
-              card.style.display = 'none';
-            }
-          });
-        }
-        
-        // Initially show all suggestions
-        showAllSuggestions();
+        });
       }
     });
   </script>
-</body>
-</html>
+  </body>
+  </html>
