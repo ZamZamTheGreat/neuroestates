@@ -72,7 +72,6 @@
           <h4>💡 Suggested Questions:</h4>
           <div class="suggestion-bubbles">
             <button onclick="sendSuggested('What can you help me with exactly?')">What can you help me with exactly?</button>
-            <button onclick="sendSuggested('Why should I chat to you and not the agent directly?')">Why should I chat to you and not the agent directly?</button>
           </div>
         </div>
       {% endif %}
@@ -88,10 +87,14 @@
         <div id="loading">Loading...</div>
       </main>
 
-      <!-- Navigation -->
+      <!-- Navigation - Form button hidden for Search-AI agent -->
       <section class="nav-buttons">
         <a href="{{ url_for('home') }}" class="nav-button">🏠 Home</a>
-        <a href="{{ tally_form if tally_form else '#' }}" class="nav-button" target="_blank">📋 Form</a>
+        
+        {% if agent_id != 'Search-AI' %}
+          <a href="{{ tally_form if tally_form else '#' }}" class="nav-button" target="_blank">📋 Form</a>
+        {% endif %}
+        
         <form action="{{ url_for('reset', agent_id=agent_id) }}" method="post">
           <button type="submit" class="nav-button">🔄 Reset Chat</button>
         </form>
@@ -137,7 +140,7 @@
       document.getElementById('chat-form').submit();
     }
 
-        // Search functionality with auto-suggestions
+    // Search functionality with auto-suggestions
     document.addEventListener('DOMContentLoaded', function() {
       const searchInput = document.getElementById('searchInput');
       const suggestionsList = document.getElementById('suggestions');
@@ -249,5 +252,5 @@
       }
     });
   </script>
-  </body>
-  </html>
+</body>
+</html>
