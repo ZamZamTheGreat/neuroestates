@@ -7,3 +7,7 @@ Neuro-Estate/venv/
 WPB/.env
 WPB/__pycache__/    
 WPB/venv/
+WPB/.env/OPENAI_API_KEY
+WPB/.env/FLASK_APP
+WPB/.env/FLASK_ENV
+render.yaml

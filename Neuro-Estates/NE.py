@@ -8,19 +8,14 @@ AGENCIES = [
         "name": "NeuroEdge Properties",
         "location": "Windhoek",
         "tagline": "Smart Real Estate Solutions",
-        "url": "https://neuroestates.onrender.com/gie"
+        "url": "https://neuroestates.onrender.com/"
     },
-    {
-        "name": "Ramos Estates",
-        "location": "Swakopmund",
-        "tagline": "Your Coastal Home Partner",
-        "url": "http://127.0.0.1:5091/"
-    },
+
     {
         "name": "Windhoek Property Brokers",
         "location": "Windhoek",
         "tagline": "Integrity in Every Deal",
-        "url": "http://127.0.0.1:5092/"
+        "url": "https://windhoekpropertybrokersai.onrender.com"
     },
 ]
 
