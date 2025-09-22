@@ -367,83 +367,6 @@
       background-color: #aaa;
       cursor: not-allowed;
     }
-    .nav-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin: 1.5rem 0 1rem;
-      user-select: none;
-      flex-wrap: wrap;
-  }
-
-   .nav-button {
-      /* Fixed size for all buttons */
-     width: 160px;
-     min-height: 50px;
-    
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-
-      background-color: var(--primary-light);
-      border: none;
-      border-radius: 10px;
-      padding: 0.75rem 1rem;
-      text-align: center;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 1rem;
-      line-height: 1.2;
-      box-shadow: 0 3px 10px rgba(212, 214, 0, 0.5);
-      transition: background-color 0.25s ease, transform 0.2s ease;
-      white-space: nowrap;
-    
-     /* Makes <a> tags behave exactly like <button> */
-     text-decoration: none;
-  }
-
-  .nav-button:hover,
-  .nav-button:focus {
-    background-color: var(--accent);
-    color: var(--primary-dark);
-    outline: none;
-  }
-
-  /* Keep buttons in a row on mobile */
-  @media (max-width: 768px) {
-    .nav-buttons {
-        gap: 0.5rem;
-        flex-wrap: nowrap; /* Prevent wrapping to new line */
-        overflow-x: auto; /* Allow horizontal scrolling if needed */
-        justify-content: flex-start; /* Align to start instead of center */
-        padding-bottom: 0.5rem; /* Space for scroll if needed */
-    }
-    
-    .nav-button {
-        flex: 0 0 auto; /* Don't grow or shrink, use explicit width */
-        width: 140px;
-        font-size: 0.9rem;
-    }
-}
-
-  /* For very small screens */
-  @media (max-width: 480px) {
-      .nav-button {
-        width: 120px;
-        font-size: 0.85rem;
-        padding: 0.6rem 0.7rem;
-    }
-  }
-    .nav-button:hover,
-    .nav-button:focus {
-      background-color: var(--accent);
-      color: var(--primary-dark);
-      outline: none;
-   }
-
-
     .agent-list {
       max-width: var(--max-width);
       margin: 2rem auto 4rem;
@@ -508,6 +431,126 @@
     .hidden {
       display: none;
     }
+    /* ===== NAVIGATION BUTTONS - HORIZONTAL ROW ===== */
+.nav-buttons {
+    display: flex;
+    flex-direction: row;           /* Always horizontal */
+    justify-content: flex-start;   /* Align to left so scroll works */
+    gap: 1rem;
+    margin: 1.5rem 0 1rem;
+    user-select: none;
+    overflow-x: auto;              /* Enable horizontal scroll */
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding: 0.5rem 0;
+    scrollbar-width: thin;         /* Firefox */
+}
+
+.nav-buttons::-webkit-scrollbar {
+    height: 6px;                   /* Slim horizontal scrollbar */
+}
+.nav-buttons::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.3);
+    border-radius: 3px;
+}
+
+/* Style for all nav buttons */
+.nav-button {
+    width: 160px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-light);
+    border: none;
+    border-radius: 10px;
+    padding: 0;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1.2;
+    box-shadow: 0 3px 10px rgba(212, 214, 0, 0.5);
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    text-decoration: none;
+    flex-shrink: 0; /* Prevent shrinking so buttons stay same size */
+    box-sizing: border-box;
+}
+
+/* Specifically target the form button to ensure same size */
+.nav-buttons form {
+    display: flex;
+    flex-shrink: 0;
+    width: 160px;
+    height: 50px;
+}
+
+.nav-buttons form .nav-button {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover/Focus states */
+.nav-button:hover,
+.nav-button:focus {
+    background-color: var(--accent);
+    color: var(--primary-dark);
+    outline: none;
+    transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .nav-button,
+    .nav-buttons form {
+        width: 150px;
+        height: 48px;
+    }
+    .nav-button {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-button,
+    .nav-buttons form {
+        width: 140px;
+        height: 46px;
+    }
+    .nav-button {
+        font-size: 0.85rem;
+    }}
+    .nav-buttons {
+    display: flex;
+    justify-content: center; /* This centers the buttons horizontally */
+    align-items: center; /* This centers the buttons vertically if needed */
+    gap: 1rem;
+    margin: 1.5rem auto; /* Auto margins help with centering */
+    user-select: none;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    width: fit-content; /* Makes container only as wide as its content */
+    max-width: 100%; /* Prevents overflow on small screens */
+}
+
+/* If you want to center the entire section including the form */
+.nav-buttons form {
+    display: flex;
+    justify-content: center;
+}
+
+/* For very small screens where buttons might wrap */
+@media (max-width: 480px) {
+    .nav-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
     /* Remove button underlines and set consistent look */
     .nav-button,
     .suggestion-bubble,
@@ -997,97 +1040,4 @@ button {
   .agent-selector {
     font-size: 0.85rem;
   }
-/* ===== NAVIGATION BUTTONS - HORIZONTAL ROW ===== */
-.nav-buttons {
-    display: flex;
-    flex-direction: row;           /* Always horizontal */
-    justify-content: flex-start;   /* Align to left so scroll works */
-    gap: 1rem;
-    margin: 1.5rem 0 1rem;
-    user-select: none;
-    overflow-x: auto;              /* Enable horizontal scroll */
-    overflow-y: hidden;
-    white-space: nowrap;
-    padding: 0.5rem 0;
-    scrollbar-width: thin;         /* Firefox */
 }
-
-.nav-buttons::-webkit-scrollbar {
-    height: 6px;                   /* Slim horizontal scrollbar */
-}
-.nav-buttons::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.3);
-    border-radius: 3px;
-}
-
-/* Style for all nav buttons */
-.nav-button {
-    width: 160px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--primary-light);
-    border: none;
-    border-radius: 10px;
-    padding: 0;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 1rem;
-    line-height: 1.2;
-    box-shadow: 0 3px 10px rgba(212, 214, 0, 0.5);
-    transition: all 0.25s ease;
-    white-space: nowrap;
-    text-decoration: none;
-    flex-shrink: 0; /* Prevent shrinking so buttons stay same size */
-    box-sizing: border-box;
-}
-
-/* Specifically target the form button to ensure same size */
-.nav-buttons form {
-    display: flex;
-    flex-shrink: 0;
-    width: 160px;
-    height: 50px;
-}
-
-.nav-buttons form .nav-button {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Hover/Focus states */
-.nav-button:hover,
-.nav-button:focus {
-    background-color: var(--accent);
-    color: var(--primary-dark);
-    outline: none;
-    transform: translateY(-2px);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .nav-button,
-    .nav-buttons form {
-        width: 150px;
-        height: 48px;
-    }
-    .nav-button {
-        font-size: 0.9rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .nav-button,
-    .nav-buttons form {
-        width: 140px;
-        height: 46px;
-    }
-    .nav-button {
-        font-size: 0.85rem;
-    }
-}}

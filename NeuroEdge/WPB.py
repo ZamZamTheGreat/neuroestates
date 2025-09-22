@@ -297,7 +297,7 @@ def agent_ask(agent_id, user_text, data):
 
     try:
         response = openai.chat.completions.create(
-            model='gpt-4o',
+            model='gpt-4-turbo',
             messages=[{'role': m['role'], 'content': m['content']} for m in messages],
             temperature=0.7
         )
