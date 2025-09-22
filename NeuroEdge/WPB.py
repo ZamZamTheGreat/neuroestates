@@ -299,7 +299,8 @@ def agent_ask(agent_id, user_text, data):
         response = openai.chat.completions.create(
             model='gpt-4-turbo',
             messages=[{'role': m['role'], 'content': m['content']} for m in messages],
-            temperature=0.7
+            temperature=0.7,
+            timeout=120
         )
         answer = response.choices[0].message.content.strip()
     except Exception as e:
@@ -544,6 +545,7 @@ def admin_panel():
                     if os.path.isdir(agent_path):
                         uploads[uid] += [f"{aid}/{fn}" for fn in os.listdir(agent_path)]
     return render_template('admin_panel.html', user_uploads=uploads)
+
 @app.route('/admin/cleanup/<user_id>', methods=['POST'])
 @login_required
 def admin_cleanup_user(user_id):
