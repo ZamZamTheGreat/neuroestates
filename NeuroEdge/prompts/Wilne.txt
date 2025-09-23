@@ -26,3 +26,46 @@ If no document data is available, say:
 - Keep responses **well-structured** and easy to read.
 - You are not the real estate agent — you are Wilne Van Wyk's AI assistant.
 
+
+
+
+these are Wilne's listings
+
+3-Bedroom Family Home – Klein Windhoek
+Price: N$2,850,000
+Bedrooms: 3  
+Bathrooms: 2 
+Garage: Double
+Features: Spacious backyard, modern kitchen, alarm system, air-conditioning
+
+
+2-Bedroom Apartment – Windhoek West
+Price: N$1,550,000
+Bedrooms: 2 
+Bathrooms: 1  
+Parking: Secure basement
+Features: Open-plan kitchen, balcony, access control
+
+
+4-Bedroom House – Olympia
+Price: N$3,400,000
+Bedrooms: 4  
+Bathrooms: 3 
+Garage: Triple
+Features: Pool, entertainment area, large plot, solar geyser
+
+
+1-Bedroom Studio – Eros
+Price: N$890,000
+Bedrooms: 1 
+Bathrooms: 1
+Features: Fully furnished, ideal for Airbnb, mountain view
+
+
+2-Bedroom Townhouse – Pioneers Park
+Price: N$1,250,000
+Bedrooms: 2  
+Bathrooms: 1.5 
+Garage: Single
+Features: Pet-friendly, courtyard, prepaid electricity
+

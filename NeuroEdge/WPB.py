@@ -196,6 +196,18 @@ def load_agent_documents():
         AGENT_DOCUMENTS[agent_id] = contents
 
     print("All agent documents loaded from /var/data")
+
+def convert_urls_to_buttons(text):
+    """Convert actual https URLs into clickable 'View Property' buttons."""
+    # Matches https://... ignoring trailing punctuation like ) or .
+    url_pattern = r'https://[^\s<>")]+'
+    return re.sub(
+        url_pattern,
+        lambda m: f"<a href='{m.group(0)}' target='_blank' class='property-link'>View Property</a>",
+        text
+    )
+
+
 def chat_url_for(agent_name: str) -> str:
     """Absolute link to an agent's chat page."""
     try:
@@ -211,11 +223,7 @@ AGENT_CONFIG = {
     'Sergej-AI': {'system_prompt':load_prompt('sergej')},
     'Search-AI': {'system_prompt': load_prompt('Search')},
     'Obert Nortje-AI': {'system_prompt': load_prompt('Obert Nortje')},
-    'Christopher Grant Van Wyk-AI': {'system_prompt': load_prompt('Christopher Grant Van Wyk')},
-    'Simon-AI': {'system_prompt': load_prompt('Simon')},
-    'Carl-AI': {'system_prompt':load_prompt('Carl')},
-    'Ruanca-AI': {'system_prompt':load_prompt('Ruanca')},
-    'Head of property-AI': {'system_prompt': load_prompt('Head of Property')},
+    'Christopher Grant Van Wyk-AI': {'system_prompt': load_prompt('Christopher')},
 }
 global_docs = load_global_docs()
 AGENT_DOCUMENTS = preload_documents()
@@ -229,6 +237,7 @@ TALLY_FORMS = {
 }
 
 # ─── Chat Handling ───────────────────────────────────────────────────────────
+# ─── User Agent Data ─────────────────────────────────────────────────────────
 def user_agent_data(agent_id):
     session.setdefault('agent_data', {})
     session['agent_data'].setdefault(agent_id, {
@@ -239,25 +248,19 @@ def user_agent_data(agent_id):
         docs = global_docs[agent_id]
 
         if isinstance(docs, list):
-            # Join relative paths with UPLOAD_FOLDER to get full absolute paths
             full_paths = [os.path.join(app.config['UPLOAD_FOLDER'], d) for d in docs]
-
-            # Keep only those that exist on disk
             existing_full_paths = [fp for fp in full_paths if os.path.isfile(fp)]
-
             if existing_full_paths:
-                # Convert back to relative paths for storage in session (same style as JSON)
                 existing_relative_paths = [os.path.relpath(fp, app.config['UPLOAD_FOLDER']) for fp in existing_full_paths]
                 session['agent_data'][agent_id]['rag_file'] = existing_relative_paths
                 session['agent_data'][agent_id]['document_name'] = [os.path.basename(fp) for fp in existing_full_paths]
             else:
                 session['agent_data'][agent_id]['rag_file'] = None
                 session['agent_data'][agent_id]['document_name'] = []
-
         elif isinstance(docs, str):
             full_path = os.path.join(app.config['UPLOAD_FOLDER'], docs)
             if os.path.isfile(full_path):
-                session['agent_data'][agent_id]['rag_file'] = [docs]  # store as list for uniformity
+                session['agent_data'][agent_id]['rag_file'] = [docs]
                 session['agent_data'][agent_id]['document_name'] = [os.path.basename(docs)]
             else:
                 session['agent_data'][agent_id]['rag_file'] = None
@@ -268,16 +271,19 @@ def user_agent_data(agent_id):
 
     return session['agent_data'][agent_id]
 
+
+# ─── Agent Ask ───────────────────────────────────────────────────────────────
 def agent_ask(agent_id, user_text, data):
     ts = datetime.now()
     data['history'].append({'role': 'user', 'content': user_text, 'timestamp': ts})
 
+    # Standard GPT messages
     messages = [
         {'role': 'system', 'content': AGENT_CONFIG[agent_id]['system_prompt']},
-        *data['history'][-6:]
+        *data['history'][-6:]  # last 6 messages
     ]
 
-    # Inject RAG context only if file(s) exist
+    # Inject RAG context if available
     rag_files = data.get('rag_file')
     if rag_files:
         if isinstance(rag_files, str):
@@ -295,6 +301,51 @@ def agent_ask(agent_id, user_text, data):
             context_text = "\n\n".join(context_parts)[:3000]
             messages.insert(1, {'role': 'system', 'content': f"You may use this uploaded context:\n\n{context_text}"})
 
+    # --- Special Search-AI behavior ---
+    if agent_id == 'Search-AI':
+        internal_agents = [a for a in AGENT_CONFIG.keys() if a != 'Search-AI']
+        internal_responses = {}
+
+        # Query all internal agents
+        for ia in internal_agents:
+            ia_data = user_agent_data(ia)
+            reply = agent_ask(ia, user_text, ia_data)  # internal call
+            internal_responses[ia] = reply
+
+        # Filter responses using GPT
+        filter_prompt = (
+            f"You are a filtering AI. The user asked: \"{user_text}\". "
+            "Evaluate each agent's response and keep only valid property listings. "
+            "Discard any agent responses that have no listings.\n\nResponses:\n"
+        )
+        for ag, resp in internal_responses.items():
+            filter_prompt += f"--- {ag} ---\n{resp}\n\n"
+
+        try:
+            filter_resp = openai.chat.completions.create(
+                model='gpt-4-turbo',
+                messages=[{'role': 'user', 'content': filter_prompt}],
+                temperature=0.3
+            )
+            filtered = filter_resp.choices[0].message.content.strip()
+        except Exception as e:
+            filtered = ""  # fallback if GPT fails
+            print(f"⚠️ GPT filter error: {e}")
+
+        # Construct final response with View Property + Chat links
+        final_response = ""
+        for ag, resp in internal_responses.items():
+            if ag in filtered:  # only include if GPT kept this agent
+                formatted = format_listing(ag, resp)            # adds "Chat with agent" link
+                formatted = convert_urls_to_buttons(formatted)  # converts https URLs to "View Property" buttons
+                final_response += f"{formatted}\n\n"
+
+        # Append to session history
+        data['history'].append({'role': 'assistant', 'content': final_response, 'timestamp': ts})
+        session.modified = True
+        return final_response
+
+    # --- Standard GPT call for regular agents ---
     try:
         response = openai.chat.completions.create(
             model='gpt-4-turbo',
@@ -310,11 +361,16 @@ def agent_ask(agent_id, user_text, data):
     session.modified = True
     return answer
 
+
+
 def format_listing(agent_name, listing_text):
-    link = chat_url_for(agent_name)
+    """Attach agent chat link cleanly, without breaking URLs."""
+    chat_link = chat_url_for(agent_name)
     safe_agent = escape(agent_name)
-    # Keep the link on its own line so it’s visually “attached” to the listing
-    return f"{listing_text}\n\n🔗 <a href='{link}'>Chat with {safe_agent}</a>"
+
+    # Ensure any existing URLs in listing_text remain untouched
+    # Then append the agent chat link on a new line
+    return f"{listing_text.strip()}\n\n🔗 <a href='{chat_link}' target='_blank'>Chat with {safe_agent}</a>"
 
 
 # ─── Language Route ──────────────────────────────────────────────────────────
@@ -351,7 +407,6 @@ def home():
 
 @app.route('/chat/<agent_id>', methods=['GET', 'POST'])
 def chat(agent_id):
-    # Validate agent
     if agent_id not in AGENT_CONFIG:
         flash('Unknown agent', 'error')
         return redirect(url_for('home'))
@@ -359,11 +414,9 @@ def chat(agent_id):
     data = user_agent_data(agent_id)
     messages = data.get('history', [])
     tally_form_url = TALLY_FORMS.get(agent_id)
-    agent_docs = AGENT_DOCUMENTS.get(agent_id, [])
-
-    # Load global documents for this agent
     global_docs = load_global_docs()
     doc_list = global_docs.get(agent_id, [])
+
     if isinstance(doc_list, list) and doc_list:
         data['document_name'] = [os.path.basename(p) for p in doc_list]
     elif isinstance(doc_list, str):
@@ -380,71 +433,78 @@ def chat(agent_id):
     lang = session.get('language', 'en')
 
     if request.method == 'POST':
-        text = request.form.get('user_input', '').strip()
-        if text:
+        user_text = request.form.get('user_input', '').strip()
+        if user_text:
             ts = datetime.now()
+            # Append the user's message once
+            data['history'].append({'role': 'user', 'content': user_text, 'timestamp': ts})
 
-            # Special handling for Search-AI
             if agent_id == 'Search-AI':
-                data['history'].append({'role': 'user', 'content': text, 'timestamp': ts})
+                # Step 1: Query all internal agents
+               internal_agents = [a for a in AGENT_CONFIG.keys() if a != 'Search-AI']
+               internal_responses = {}
 
-                # Query internal agents
-                internal_agents = [a for a in AGENT_CONFIG.keys() if a not in ['Search-AI', 'Head of property-AI']]
-                internal_responses = {}
+               for ia in internal_agents:
+                   ia_data = user_agent_data(ia)
+                   reply = agent_ask(ia, user_text, ia_data)
+                   internal_responses[ia] = reply
 
-                for ia in internal_agents:
-                    ia_data = user_agent_data(ia)
-                    agent_reply = agent_ask(ia, text, ia_data)
-                    formatted = format_listing(ia, agent_reply)  # Add links here
-                    internal_responses[ia] = formatted
+               # Step 2: Filter responses using GPT to keep only agents with valid listings
+               filter_prompt = (
+                "You are a filtering AI. Keep only responses that include valid property listings. "
+                "Discard any agent that has no relevant listings.\n\n"
+                "Agent responses:\n"
+               )
+               for ag, resp in internal_responses.items():
+                   filter_prompt += f"--- {ag} ---\n{resp}\n\n"
 
-                # Summarize for Head of Property-AI
-                summary_prompt = [
-                    f"The user is searching for a property. Query: \"{text}\"",
-                    "",
-                    "Responses from agents with links included:"
-                ]
-                for ag, resp in internal_responses.items():
-                    summary_prompt.append(f"--- Agent: {ag} ---")
-                    summary_prompt.append(resp)
-                    summary_prompt.append("")
+               filtered_reply = openai.chat.completions.create(
+                   model="gpt-4-turbo",
+                   messages=[{'role': 'user', 'content': filter_prompt}],
+                   temperature=0.7
+               ).choices[0].message.content.strip()
 
-                head_data = user_agent_data('Head of property-AI')
-                final_answer = agent_ask('Head of property-AI', "\n".join(summary_prompt), head_data)
+               # Step 3: Format listings with "View Property" buttons and "Chat with Agent"
+               def convert_urls_to_buttons(text):
+                   url_pattern = r'https://[^\s<>")]+'
+                   return re.sub(
+                       url_pattern,
+                       lambda m: f"<a href='{m.group(0)}' target='_blank' class='property-link'>View Property</a>",
+                       text
+                   )
 
-                # Append contact links at bottom
-                try:
-                    sources_html = "<br>".join(
-                        f"• <a href='{chat_url_for(a)}'>{escape(a)}</a>"
-                        for a in internal_responses.keys()
-                    )
-                    final_answer = f"{final_answer}\n\n<hr><b>Contact the listing agents directly:</b><br>{sources_html}"
-                except Exception:
-                    pass
+               final_response = ""
+               for ag, resp in internal_responses.items():
+                   if ag in filtered_reply:  # Include only agents GPT kept
+                       formatted = convert_urls_to_buttons(resp)
+                       # Add "Chat with Agent" link under each listing
+                       chat_link = f"<a href='{chat_url_for(ag)}' target='_blank'>Chat with {escape(ag)}</a>"
+                       formatted += f"\n\n{chat_link}"
+                       final_response += f"{formatted}\n\n"
 
-                data['history'].append({'role': 'assistant', 'content': final_answer, 'timestamp': ts})
-                session.modified = True
-                return redirect(url_for('chat', agent_id=agent_id))
+               # Step 4: Append assistant response
+               data['history'].append({'role': 'assistant', 'content': final_response, 'timestamp': ts})
+               session.modified = True
+               return redirect(url_for('chat', agent_id=agent_id))
 
-            # Tally form trigger
-            if any(phrase in text.lower() for phrase in ['leave my details', 'contact form', '📋']):
-                if tally_form_url:
-                    response = f"📋 Please <a href='{tally_form_url}' target='_blank'>fill out this short form</a> so your agent can get in touch with you."
-                    data['history'].append({'role': 'assistant', 'content': response, 'timestamp': ts})
-                    session.modified = True
-                    return redirect(url_for('chat', agent_id=agent_id))
+           # Step 5: Regular agent or Tally form handling
+            elif any(phrase in user_text.lower() for phrase in ['leave my details', 'contact form', '📋']):
+               if tally_form_url:
+                   response = f"📋 Please <a href='{tally_form_url}' target='_blank'>fill out this short form</a> so your agent can get in touch with you."
+                   data['history'].append({'role': 'assistant', 'content': response, 'timestamp': ts})
+                   session.modified = True
+                   return redirect(url_for('chat', agent_id=agent_id))
+            else:
+               agent_ask(agent_id, user_text, data)
+               return redirect(url_for('chat', agent_id=agent_id))
 
-            # Regular agent handling
-            agent_ask(agent_id, text, data)
-
-        return redirect(url_for('chat', agent_id=agent_id))
 
     # GET: render chat page
     return render_template(
         'index.html',
         agent_id=agent_id,
         messages=messages,
-        agents=[a for a in AGENT_CONFIG.keys() if a not in ['Search-AI', 'Head of property-AI']],
+        agents=[a for a in AGENT_CONFIG.keys() if a != 'Search-AI'],
         AGENT_CONFIG=AGENT_CONFIG,
         TALLY_FORMS=TALLY_FORMS,
         document_name=data.get('document_name', []),
@@ -566,9 +626,6 @@ def admin_cleanup_user(user_id):
         flash(f"No files found for user {user_id}.", "info")
 
     return redirect(url_for('admin_panel'))
-
-#_____Internal Queries______________________
-
 
 @app.errorhandler(404)
 def not_found(e):
