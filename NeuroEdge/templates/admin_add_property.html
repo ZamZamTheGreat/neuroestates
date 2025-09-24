@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Property - {{ agency }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+        .header { background: #343a40; color: white; padding: 15px 20px; display: flex; justify-content: space-between; }
+        .nav { background: #495057; padding: 10px 20px; }
+        .nav a { color: white; text-decoration: none; margin-right: 20px; padding: 5px 10px; }
+        .container { max-width: 800px; margin: 20px auto; padding: 0 20px; }
+        .form-container { background: white; padding: 30px; border-radius: 5px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea { height: 100px; resize: vertical; }
+        .btn { 
+            background: #007bff; 
+            color: white; 
+            padding: 12px 25px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover { background: #0056b3; }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-bottom: 20px;
+        }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ agency }} - Add New Property</h1>
+        <div><a href="{{ url_for('admin_dashboard') }}">Dashboard</a> | <a href="{{ url_for('admin_logout') }}">Logout</a></div>
+    </div>
+    
+    <div class="nav">
+        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('admin_properties') }}">Properties</a>
+        <a href="{{ url_for('admin_agents') }}">Agents</a>
+        <a href="{{ url_for('admin_trash') }}">Trash Bin</a>
+    </div>
+    
+    <div class="container">
+        <div class="form-container">
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="property_id">Property ID *</label>
+                    <input type="text" id="property_id" name="property_id" required 
+                           placeholder="e.g., NE-P001 or WPB-P001">
+                </div>
+                
+                <div class="form-group">
+                    <label for="title">Property Title *</label>
+                    <input type="text" id="title" name="title" required 
+                           placeholder="e.g., Luxury Villa in Klein Windhoek">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description *</label>
+                    <textarea id="description" name="description" required 
+                              placeholder="Describe the property features, location, and amenities"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="price">Price (NAD) *</label>
+                        <input type="number" id="price" name="price" step="0.01" required 
+                               placeholder="e.g., 3500000.00">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="property_type">Property Type *</label>
+                        <select id="property_type" name="property_type" required>
+                            <option value="">Select Type</option>
+                            <option value="house">House</option>
+                            <option value="apartment">Apartment</option>
+                            <option value="townhouse">Townhouse</option>
+                            <option value="villa">Villa</option>
+                            <option value="commercial">Commercial</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bedrooms">Bedrooms *</label>
+                        <input type="number" id="bedrooms" name="bedrooms" required min="1" max="10">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bathrooms">Bathrooms *</label>
+                        <input type="number" id="bathrooms" name="bathrooms" required min="1" max="10">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="size_sqft">Size (sqft) *</label>
+                        <input type="number" id="size_sqft" name="size_sqft" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location">Location *</label>
+                    <input type="text" id="location" name="location" required 
+                           placeholder="e.g., Klein Windhoek, Windhoek">
+                </div>
+                
+                <div class="form-group">
+                    <label for="features">Features (comma-separated)</label>
+                    <input type="text" id="features" name="features" 
+                           placeholder="e.g., Pool, Garden, Security, Garage">
+                </div>
+                
+                <div class="form-group">
+                    <label for="agent_id">Agent ID *</label>
+                    <select id="agent_id" name="agent_id" required>
+                        <option value="">Select Agent</option>
+                        {% for agent in agents %}
+                        <option value="{{ agent.id }}">{{ agent.name }} ({{ agent.specialty }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Add these new fields to the form -->
+                <div class="form-group">
+                    <label for="listing_url">External Listing URL (Optional)</label>
+                    <input type="url" id="listing_url" name="listing_url" 
+                         placeholder="https://www.property24.com/your-listing">
+                    <small style="color: #666;">Link to Property24, Private Property, etc.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="images">Image URLs (comma-separated)</label>
+                    <textarea id="images" name="images" 
+                            placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
+                            rows="3"></textarea>
+                    <small style="color: #666;">Add links to property photos</small>
+                </div>
+                
+                <button type="submit" class="btn">Add Property</button>
+                <a href="{{ url_for('admin_properties') }}" style="margin-left: 10px; color: #666; text-decoration: none;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

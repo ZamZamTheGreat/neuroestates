@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trash Bin - {{ agency }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+        .header { background: #343a40; color: white; padding: 15px 20px; display: flex; justify-content: space-between; }
+        .nav { background: #495057; padding: 10px 20px; }
+        .nav a { color: white; text-decoration: none; margin-right: 20px; padding: 5px 10px; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .trash-list { background: white; border-radius: 5px; overflow: hidden; margin-bottom: 20px; }
+        .trash-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .trash-info h3 { margin: 0; color: #333; opacity: 0.7; }
+        .trash-meta { color: #666; font-size: 0.9em; opacity: 0.7; }
+        .trash-actions { display: flex; gap: 10px; }
+        .trash-actions button { padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; font-size: 0.9em; }
+        .restore-btn { background: #28a745; color: white; }
+        .delete-btn { background: #dc3545; color: white; }
+        .empty-trash-btn { background: #dc3545; color: white; padding: 10px 15px; border: none; border-radius: 3px; cursor: pointer; margin-bottom: 20px; }
+        .warning-banner { background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #ffc107; }
+        .error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+        .success { background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+        .property-status { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.8em; margin-left: 10px; }
+        .status-deleted { background: #f8d7da; color: #721c24; }
+        .status-sold { background: #d1ecf1; color: #0c5460; }
+        .empty-state { text-align: center; padding: 40px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ agency }} - Trash Bin</h1>
+        <div><a href="{{ url_for('admin_dashboard') }}">Dashboard</a> | <a href="{{ url_for('admin_logout') }}">Logout</a></div>
+    </div>
+    
+    <div class="nav">
+        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('admin_properties') }}">Properties</a>
+        <a href="{{ url_for('admin_agents') }}">Agents</a>
+        <a href="{{ url_for('admin_users') }}">Users</a>
+        <a href="{{ url_for('admin_trash') }}">Trash Bin ({{ deleted_properties|length }})</a>
+    </div>
+    
+    <div class="container">
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        {% if success %}
+        <div class="success">{{ success }}</div>
+        {% endif %}
+
+        <div class="warning-banner">
+            <h3>⚠️ Trash Bin</h3>
+            <p>This page shows properties that have been soft-deleted (archived). You can restore them or permanently delete them.</p>
+            <p><strong>Deleted Properties:</strong> {{ deleted_properties|length }}</p>
+        </div>
+
+        {% if deleted_properties %}
+        <form method="POST" style="margin-bottom: 20px;">
+            <input type="hidden" name="action" value="empty_trash">
+            <button type="submit" class="empty-trash-btn" 
+                    onclick="return confirm('🚨 EMPTY TRASH BIN 🚨\n\nThis will permanently delete ALL {{ deleted_properties|length }} properties in the trash bin.\n\nTHIS ACTION CANNOT BE UNDONE!\n\nAre you absolutely sure?')">
+                🗑️ Empty Trash Bin ({{ deleted_properties|length }} properties)
+            </button>
+        </form>
+        {% endif %}
+
+        <div class="trash-list">
+            {% for property in deleted_properties %}
+            <div class="trash-item">
+                <div class="trash-info">
+                    <h3>{{ property.title }}</h3>
+                    <div class="trash-meta">
+                        N$ {{ "{:,.2f}".format(property.price) }} | 
+                        {{ property.bedrooms }} bed | 
+                        {{ property.bathrooms }} bath |
+                        {{ property.location }}
+                        <span class="property-status status-{{ property.status }}">{{ property.status|title }}</span>
+                    </div>
+                    <div class="trash-meta">
+                        <strong>Agent:</strong> {{ property.agent_name }} | 
+                        <strong>Deleted:</strong> {{ property.created_at[:10] }} |
+                        <strong>ID:</strong> {{ property.id }}
+                    </div>
+                </div>
+                <div class="trash-actions">
+                    <form method="POST" style="display: inline;">
+                        <input type="hidden" name="action" value="restore_property">
+                        <input type="hidden" name="property_id" value="{{ property.id }}">
+                        <button type="submit" class="restore-btn" 
+                                onclick="return confirm('Restore \'{{ property.title }}\'?')">
+                            Restore
+                        </button>
+                    </form>
+                    
+                    <form method="POST" style="display: inline;">
+                        <input type="hidden" name="action" value="permanently_delete_property">
+                        <input type="hidden" name="property_id" value="{{ property.id }}">
+                        <button type="submit" class="delete-btn" 
+                                onclick='return confirm("⚠️ PERMANENT DELETE ⚠️\n\nDelete \"{{ property.title }}\" permanently?\n\nThis action cannot be undone!")'>
+                            Delete Permanently
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <h3>🎉 Trash Bin is Empty</h3>
+                <p>No deleted properties found. Great job keeping things clean!</p>
+                <p><a href="{{ url_for('admin_properties') }}">← Back to Properties</a></p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if deleted_properties %}
+        <div style="padding: 15px; background: #e9ecef; border-radius: 5px;">
+            <h3>Trash Bin Information</h3>
+            <ul>
+                <li><strong>Restore:</strong> Returns the property to active listings</li>
+                <li><strong>Delete Permanently:</strong> Completely removes the property from the database</li>
+                <li><strong>Empty Trash Bin:</strong> Permanently deletes ALL properties in the trash</li>
+                <li>Properties stay in the trash bin until you empty it or restore them</li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Enhanced confirmation for dangerous actions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Empty trash bin confirmation
+            const emptyTrashBtn = document.querySelector('.empty-trash-btn');
+            if (emptyTrashBtn) {
+                emptyTrashBtn.addEventListener('click', function(e) {
+                    if (!confirm('🚨 DANGEROUS ACTION 🚨\n\nThis will PERMANENTLY DELETE ALL properties in the trash bin.\n\nThis action is irreversible and cannot be undone!\n\nAre you absolutely certain?')) {
+                        e.preventDefault();
+                    }
+                });
+            }
+            
+            // Permanent deletion confirmation
+            const permanentDeleteBtns = document.querySelectorAll('.delete-btn');
+            permanentDeleteBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const propertyTitle = this.closest('.trash-item').querySelector('h3').textContent;
+                    if (!confirm(`⚠️ PERMANENT DELETION ⚠️\n\nProperty: ${propertyTitle}\n\nThis will permanently remove the property from the database.\n\nTHIS ACTION CANNOT BE UNDONE!\n\nProceed?`)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

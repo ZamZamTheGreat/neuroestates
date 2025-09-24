@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Agents - {{ agency }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+        .header { background: #343a40; color: white; padding: 15px 20px; display: flex; justify-content: space-between; }
+        .nav { background: #495057; padding: 10px 20px; }
+        .nav a { color: white; text-decoration: none; margin-right: 20px; padding: 5px 10px; }
+        .nav a:hover { background: #6c757d; border-radius: 3px; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .agent-list { background: white; border-radius: 5px; overflow: hidden; margin-bottom: 30px; }
+        .agent-item { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; }
+        .agent-info { flex: 1; }
+        .agent-info h3 { margin: 0; color: #333; }
+        .agent-meta { color: #666; margin: 5px 0; }
+        .agent-specialty { background: #e9ecef; padding: 3px 8px; border-radius: 3px; display: inline-block; font-size: 0.9em; }
+        .agent-actions { margin-left: 20px; }
+        .delete-btn { background: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; }
+        .delete-btn:hover { background: #c82333; }
+        .add-agent-form { background: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input, textarea { 
+            width: 100%; 
+            padding: 8px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea { height: 60px; resize: vertical; }
+        .btn { 
+            background: #28a745; 
+            color: white; 
+            padding: 10px 15px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer;
+        }
+        .btn:hover { background: #218838; }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-bottom: 20px;
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-bottom: 20px;
+        }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ agency }} - Agent Management</h1>
+        <div><a href="{{ url_for('admin_dashboard') }}">Dashboard</a> | <a href="{{ url_for('admin_logout') }}">Logout</a></div>
+    </div>
+    
+    <div class="nav">
+        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('admin_properties') }}">Properties</a>
+        <a href="{{ url_for('admin_agents') }}">Agents</a>
+        <a href="{{ url_for('admin_users') }}">Users</a>
+        <a href="{{ url_for('admin_trash') }}">Trash Bin</a>
+    </div>
+    
+    <div class="container">
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        {% if success %}
+        <div class="success">{{ success }}</div>
+        {% endif %}
+
+        <div class="add-agent-form">
+            <h2>Add New Agent</h2>
+            <form method="POST">
+                <input type="hidden" name="action" value="add_agent">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="agent_id">Agent ID *</label>
+                        <input type="text" id="agent_id" name="agent_id" required 
+                               placeholder="e.g., NE004 or WPB004">
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" required 
+                               placeholder="e.g., AI Agent John">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required 
+                               placeholder="e.g., john@agency.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone *</label>
+                        <input type="text" id="phone" name="phone" required 
+                               placeholder="e.g., +264 81 123 4567">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="specialty">Specialty *</label>
+                    <input type="text" id="specialty" name="specialty" required 
+                           placeholder="e.g., Luxury Homes, Investment Properties">
+                </div>
+                
+                <div class="form-group">
+                    <label for="bio">Bio</label>
+                    <textarea id="bio" name="bio" placeholder="Brief description of the agent"></textarea>
+                </div>
+                
+                <button type="submit" class="btn">Add Agent</button>
+            </form>
+        </div>
+
+        <h2>Registered Agents ({{ agents|length }})</h2>
+        
+        <div class="agent-list">
+            {% for agent in agents %}
+            <div class="agent-item">
+                <div class="agent-info">
+                    <h3>{{ agent.name }}</h3>
+                    <div class="agent-meta">
+                        <strong>ID:</strong> {{ agent.id }} | 
+                        <strong>Email:</strong> {{ agent.email }} | 
+                        <strong>Phone:</strong> {{ agent.phone }}
+                    </div>
+                    <div class="agent-meta">
+                        <span class="agent-specialty">{{ agent.specialty }}</span>
+                    </div>
+                    {% if agent.bio %}
+                    <div class="agent-meta"><strong>Bio:</strong> {{ agent.bio }}</div>
+                    {% endif %}
+                </div>
+                <div class="agent-actions">
+                    <form method="POST" style="display: inline;">
+                        <input type="hidden" name="action" value="delete_agent">
+                        <input type="hidden" name="agent_id" value="{{ agent.id }}">
+                        <button type="submit" class="delete-btn" 
+                                onclick="return confirm('Are you sure you want to delete agent {{ agent.name }}? This action cannot be undone.')">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="agent-item" style="text-align: center; padding: 40px;">
+                <p>No agents found in the database.</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div style="padding: 15px; background: #e9ecef; border-radius: 5px;">
+            <h3>Agent Management Notes</h3>
+            <ul>
+                <li>You can only delete agents that have no properties assigned to them</li>
+                <li>Agent IDs should be unique (e.g., NE001, NE002 for NeuroEdge; WPB001, WPB002 for Windhoek Brokers)</li>
+                <li>Deleted agents cannot be recovered</li>
+                <li>To reassign properties to a different agent, edit the property first</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

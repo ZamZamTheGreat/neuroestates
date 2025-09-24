@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ property.title }} - {{ agency }} Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        .header-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 1rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .header-links a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav {
+            background: #34495e;
+            padding: 0.5rem 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav a {
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            margin-bottom: 2rem;
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #2980b9;
+        }
+
+        .property-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .property-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .property-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .property-id {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 300;
+        }
+
+        .property-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .property-meta {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+        }
+
+        .property-content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .description {
+            line-height: 1.8;
+            color: #555;
+            font-size: 1.1rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .feature-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+
+        .agent-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .agent-name {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .agent-contact {
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .agent-specialty {
+            background: #3498db;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d68910;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .external-link {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .external-link:hover {
+            background: #8e44ad;
+        }
+
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .property-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .property-image:hover {
+            transform: scale(1.05);
+        }
+
+        .no-images {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .status-available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-sold {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-archived {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .property-title {
+                font-size: 1.5rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .property-meta {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ agency }} - Property Details</h1>
+        <div class="header-links">
+            <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin_logout') }}">Logout</a>
+        </div>
+    </div>
+    
+    <div class="nav">
+        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('admin_properties') }}">Properties</a>
+        <a href="{{ url_for('admin_agents') }}">Agents</a>
+        <a href="{{ url_for('admin_users') }}">Users</a>
+        <a href="{{ url_for('admin_trash') }}">Trash Bin</a>
+    </div>
+    
+    <div class="container">
+        <a href="{{ url_for('admin_properties') }}" class="back-button">← Back to Properties</a>
+        
+        <div class="property-card">
+            <div class="property-header">
+                <div class="property-title">
+                    {{ property.title }}
+                    <span class="property-id">ID: {{ property.id }}</span>
+                    <span class="status-badge status-available">{{ property.status|default('available')|title }}</span>
+                </div>
+                <div class="property-price">N$ {{ "{:,.2f}".format(property.price) }}</div>
+                
+                <div class="property-meta">
+                    <div class="meta-item">🏠 {{ property.property_type|title }}</div>
+                    <div class="meta-item">🛏️ {{ property.bedrooms }} Bedrooms</div>
+                    <div class="meta-item">🚿 {{ property.bathrooms }} Bathrooms</div>
+                    <div class="meta-item">📏 {{ property.size_sqft }} sqft</div>
+                    <div class="meta-item">📍 {{ property.location }}</div>
+                </div>
+            </div>
+            
+            <div class="property-content">
+                <!-- Description Section -->
+                <div class="section">
+                    <h3 class="section-title">Description</h3>
+                    <div class="description">
+                        {{ property.description|default('No description provided.') }}
+                    </div>
+                </div>
+                
+                <!-- Features Section -->
+                {% if property.features %}
+                <div class="section">
+                    <h3 class="section-title">Features & Amenities</h3>
+                    <div class="features-grid">
+                        {% for feature in property.features %}
+                        <div class="feature-item">{{ feature }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Images Section -->
+                {% if property.images %}
+                <div class="section">
+                    <h3 class="section-title">Property Images</h3>
+                    <div class="image-gallery">
+                        {% for image_url in property.images %}
+                        <img src="{{ image_url }}" alt="Property Image" class="property-image" onclick="window.open('{{ image_url }}', '_blank')">
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="section">
+                    <h3 class="section-title">Property Images</h3>
+                    <div class="no-images">No images available for this property.</div>
+                </div>
+                {% endif %}
+                
+                <!-- Agent Information -->
+                <div class="section">
+                    <h3 class="section-title">Assigned Agent</h3>
+                    <div class="agent-card">
+                        <div class="agent-name">{{ property.agent_name }}</div>
+                        <div class="agent-contact">📧 {{ property.agent_email|default('No email') }}</div>
+                        <div class="agent-contact">📞 {{ property.agent_phone|default('No phone') }}</div>
+                        <div class="agent-specialty">{{ property.agent_specialty|default('General') }}</div>
+                    </div>
+                </div>
+                
+                <!-- External Links -->
+                {% if property.listing_url %}
+                <div class="section">
+                    <h3 class="section-title">External Listing</h3>
+                    <a href="{{ property.listing_url }}" target="_blank" class="btn external-link">
+                        🌐 View External Listing
+                    </a>
+                </div>
+                {% endif %}
+                
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    {% if property.listing_url %}
+                    <a href="{{ property.listing_url }}" target="_blank" class="btn btn-primary">
+                        👁️ View External Listing
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('admin_edit_property', property_id=property.id) }}" class="btn btn-success">
+                        ✏️ Edit Property
+                    </a>
+                    
+                    <form method="POST" action="{{ url_for('admin_properties') }}" style="display: inline;">
+                        <input type="hidden" name="action" value="archive_property">
+                        <input type="hidden" name="archive_id" value="{{ property.id }}">
+                        <button type="submit" class="btn btn-warning" 
+                                onclick="return confirm('Archive this property? It will be moved to trash but can be restored later.')">
+                            🗂️ Archive Property
+                        </button>
+                    </form>
+                    
+                    <form method="POST" action="{{ url_for('admin_properties') }}" style="display: inline;">
+                        <input type="hidden" name="action" value="delete_property">
+                        <input type="hidden" name="delete_id" value="{{ property.id }}">
+                        <button type="submit" class="btn btn-danger" 
+                                onclick="return confirm('⚠️ PERMANENT DELETE ⚠️\n\nThis will permanently delete the property. This action cannot be undone!\n\nAre you absolutely sure?')">
+                            🗑️ Delete Permanently
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Property Metadata -->
+                <div class="section">
+                    <h3 class="section-title">Property Information</h3>
+                    <div class="property-meta">
+                        <div class="meta-item">🆔 Property ID: {{ property.id }}</div>
+                        <div class="meta-item">🏢 Agency: {{ agency }}</div>
+                        <div class="meta-item">💵 Currency: {{ property.currency|default('NAD') }}</div>
+                        <div class="meta-item">🏙️ City: {{ property.city|default('Windhoek') }}</div>
+                        {% if property.created_at %}
+                        <div class="meta-item">📅 Listed: {{ property.created_at }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced confirmation dialogs
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteButtons = document.querySelectorAll('.btn-danger');
+            const archiveButtons = document.querySelectorAll('.btn-warning');
+            
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    if (!confirm(`🚨 PERMANENT DELETION CONFIRMATION 🚨\n\nProperty: ${this.closest('.property-card').querySelector('.property-title').textContent.trim()}\n\nThis will permanently remove the property from the database.\n\nTHIS ACTION CANNOT BE UNDONE!\n\nAre you absolutely sure?`)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+            
+            archiveButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    if (!confirm(`🗂️ ARCHIVE PROPERTY\n\nProperty: ${this.closest('.property-card').querySelector('.property-title').textContent.trim()}\n\nThis will move the property to the trash bin where it can be restored later.\n\nContinue?`)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -74,4 +74,4 @@ Additional Features: Paving around the property
 
 Viewing Requirements: By appointment, subject to proof of funds or approval
 
-Link to listing: <https://www.remax-laprosperite.com/property/for-sale/namibia/khomas/windhoek/klein-windhoek/3-bedroom-townhouse-for-sale-34965837/>
+Link to listing: "https://www.remax-laprosperite.com/property/for-sale/namibia/khomas/windhoek/klein-windhoek/3-bedroom-townhouse-for-sale-34965837/"

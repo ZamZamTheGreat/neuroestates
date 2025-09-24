@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Management - {{ agency }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+        .header { background: #343a40; color: white; padding: 15px 20px; display: flex; justify-content: space-between; }
+        .nav { background: #495057; padding: 10px 20px; }
+        .nav a { color: white; text-decoration: none; margin-right: 20px; padding: 5px 10px; }
+        .container { max-width: 600px; margin: 20px auto; padding: 0 20px; }
+        .form-container { background: white; padding: 30px; border-radius: 5px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn { 
+            background: #007bff; 
+            color: white; 
+            padding: 12px 25px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover { background: #0056b3; }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-bottom: 20px;
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-bottom: 20px;
+        }
+        .password-strength { 
+            font-size: 0.9em; 
+            margin-top: 5px; 
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ agency }} - User Management</h1>
+        <div><a href="{{ url_for('admin_dashboard') }}">Dashboard</a> | <a href="{{ url_for('admin_logout') }}">Logout</a></div>
+    </div>
+    
+    <div class="nav">
+        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('admin_properties') }}">Properties</a>
+        <a href="{{ url_for('admin_agents') }}">Agents</a>
+        <a href="{{ url_for('admin_users') }}">Users</a>
+        <a href="{{ url_for('admin_trash') }}">Trash Bin</a>
+    </div>
+    
+    <div class="container">
+        <div class="form-container">
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+            
+            {% if success %}
+            <div class="success">{{ success }}</div>
+            {% endif %}
+            
+            <h2>Change Your Password</h2>
+            <p>You are logged in as: <strong>{{ session.get('admin_username', 'Admin') }}</strong></p>
+            
+            <form method="POST">
+                <input type="hidden" name="action" value="change_password">
+                
+                <div class="form-group">
+                    <label for="current_password">Current Password *</label>
+                    <input type="password" id="current_password" name="current_password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password">New Password *</label>
+                    <input type="password" id="new_password" name="new_password" required minlength="6">
+                    <div class="password-strength">Password must be at least 6 characters long</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Confirm New Password *</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required minlength="6">
+                </div>
+                
+                <button type="submit" class="btn">Change Password</button>
+            </form>
+            
+            <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                <h3>Security Tips</h3>
+                <ul>
+                    <li>Use a strong, unique password</li>
+                    <li>Change your password regularly</li>
+                    <li>Never share your password with anyone</li>
+                    <li>Log out when you're done</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

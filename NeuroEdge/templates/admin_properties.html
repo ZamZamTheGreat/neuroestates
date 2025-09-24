@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Properties - {{ agency }}</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: #f5f5f5; 
+            line-height: 1.6;
+        }
+        .header { 
+            background: #343a40; 
+            color: white; 
+            padding: 15px 20px; 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav { 
+            background: #495057; 
+            padding: 10px 20px; 
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav a { 
+            color: white; 
+            text-decoration: none; 
+            padding: 5px 10px; 
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        .nav a:hover { 
+            background: #6c757d; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 20px auto; 
+            padding: 0 20px; 
+        }
+        .property-list { 
+            background: white; 
+            border-radius: 5px; 
+            overflow: hidden; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .property-item { 
+            padding: 20px; 
+            border-bottom: 1px solid #eee; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .property-item:last-child {
+            border-bottom: none;
+        }
+        .property-info { 
+            flex: 1; 
+        }
+        .property-info h3 { 
+            margin: 0 0 10px 0; 
+            color: #333; 
+            font-size: 1.2em;
+        }
+        .property-meta { 
+            color: #666; 
+            font-size: 0.9em; 
+            margin-bottom: 5px;
+        }
+        .property-actions { 
+            display: flex; 
+            gap: 10px; 
+            flex-shrink: 0;
+        }
+        .property-actions a, 
+        .property-actions button { 
+            text-decoration: none; 
+            padding: 8px 12px; 
+            border-radius: 4px; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 0.9em;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .edit-btn { 
+            background: #ffc107; 
+            color: #212529; 
+        }
+        .edit-btn:hover {
+            background: #e0a800;
+        }
+        .delete-btn { 
+            background: #dc3545; 
+            color: white; 
+        }
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        .archive-btn { 
+            background: #6c757d; 
+            color: white; 
+        }
+        .archive-btn:hover {
+            background: #5a6268;
+        }
+        .add-btn { 
+            background: #28a745; 
+            color: white; 
+            padding: 12px 20px; 
+            text-decoration: none; 
+            border-radius: 4px; 
+            display: inline-block; 
+            margin-bottom: 20px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .add-btn:hover {
+            background: #218838;
+            text-decoration: none;
+            color: white;
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            padding: 12px; 
+            border-radius: 4px; 
+            margin-bottom: 20px;
+            border-left: 4px solid #dc3545;
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            padding: 12px; 
+            border-radius: 4px; 
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+        .property-status { 
+            display: inline-block; 
+            padding: 3px 8px; 
+            border-radius: 3px; 
+            font-size: 0.8em; 
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        .status-available { 
+            background: #d4edda; 
+            color: #155724; 
+        }
+        .status-sold { 
+            background: #f8d7da; 
+            color: #721c24; 
+        }
+        .empty-state { 
+            text-align: center; 
+            padding: 40px; 
+            color: #666;
+        }
+        .info-box {
+            margin-top: 30px; 
+            padding: 20px; 
+            background: #e9ecef; 
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .property-item {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .property-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .nav {
+                flex-direction: column;
+                gap: 5px;
+            }
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ agency }} - Property Management</h1>
+        <div>
+            <a href="{{ url_for('admin_dashboard') }}">Dashboard</a> | 
+            <a href="{{ url_for('admin_logout') }}">Logout</a>
+        </div>
+    </div>
+    
+    <div class="nav">
+        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('admin_properties') }}">Properties</a>
+        <a href="{{ url_for('admin_agents') }}">Agents</a>
+        <a href="{{ url_for('admin_users') }}">Users</a>
+        <a href="{{ url_for('admin_trash') }}">Trash Bin</a>
+    </div>
+    
+    <div class="container">
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        {% if success %}
+        <div class="success">{{ success }}</div>
+        {% endif %}
+
+        <a href="{{ url_for('admin_add_property') }}" class="add-btn">+ Add New Property</a>
+        
+        <h2>Active Properties ({{ properties|length }})</h2>
+        
+        <div class="property-list">
+            {% if properties %}
+                {% for property in properties %}
+                <div class="property-item">
+                    <div class="property-info">
+                        <h3>
+                            {{ property.title }}
+                            {% if property.listing_url %}
+                            <a href="{{ property.listing_url }}" target="_blank" style="margin-left: 10px; font-size: 0.7em;">🌐</a>
+                            {% endif %}
+                        </h3>
+                        <div class="property-meta">
+                            N$ {{ "{:,.2f}".format(property.price) }} | 
+                            {{ property.bedrooms }} bed | 
+                            {{ property.bathrooms }} bath |
+                            {{ property.location }}
+                            <span class="property-status status-available">Available</span>
+                        </div>
+                        <div class="property-meta">
+                            <strong>Agent:</strong> 
+                            <a href="{{ property.chat_link }}" style="color: #28a745; text-decoration: none;">
+                                💬 {{ property.agent_name }}
+                            </a>
+                            | <strong>Type:</strong> {{ property.property_type }} |
+                            <strong>ID:</strong> {{ property.id }}
+                        </div>
+                        {% if property.description %}
+                        <div class="property-meta">
+                            <strong>Description:</strong> {{ property.description[:100] }}{% if property.description|length > 100 %}...{% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="property-actions">
+                        <a href="{{ url_for('property_details', property_id=property.id) }}" class="view-btn">👁️ View</a>
+                        <a href="{{ url_for('admin_edit_property', property_id=property.id) }}" class="edit-btn">Edit</a>
+                        
+                        <!-- Archive Button (Soft Delete) -->
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="action" value="archive_property">
+                            <input type="hidden" name="archive_id" value="{{ property.id }}">
+                            <button type="submit" class="archive-btn" 
+                                    onclick="return confirm('Archive &quot;{{ property.title }}&quot;? It will be moved to trash but can be restored later.')">
+                                Archive
+                            </button>
+                        </form>
+                        
+                        <!-- Delete Button (Permanent Delete) -->
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="action" value="delete_property">
+                            <input type="hidden" name="delete_id" value="{{ property.id }}">
+                            <button type="submit" class="delete-btn" 
+                                    onclick="return confirm('⚠️ PERMANENT DELETE ⚠️\n\nAre you sure you want to permanently delete &quot;{{ property.title }}&quot;?\n\nThis action cannot be undone!')">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="property-item">
+                    <div class="empty-state">
+                        <h3>No Properties Found</h3>
+                        <p>Get started by adding your first property to the system.</p>
+                        <a href="{{ url_for('admin_add_property') }}" class="add-btn">Add Your First Property</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="info-box">
+            <h3>About Property Management</h3>
+            <p><strong>📝 Edit:</strong> Modify property details, price, description, and features.</p>
+            <p><strong>🗂️ Archive:</strong> Move property to trash bin. Archived properties can be restored later.</p>
+            <p><strong>🗑️ Delete:</strong> Permanently remove property from the database. This action cannot be undone.</p>
+            <p><strong>🚨 Important:</strong> Always archive properties first. Use permanent delete only when sure.</p>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced confirmation for permanent deletion
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const propertyItem = this.closest('.property-item');
+                    const propertyTitle = propertyItem.querySelector('h3').textContent;
+                    
+                    if (!confirm(`🚨 PERMANENT DELETION CONFIRMATION 🚨\n\nProperty: ${propertyTitle}\n\nThis will permanently remove the property from the database.\n\nTHIS ACTION CANNOT BE UNDONE!\n\nAre you absolutely sure you want to proceed?`)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+
+            // Add loading states to buttons
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const buttons = this.querySelectorAll('button');
+                    buttons.forEach(button => {
+                        button.disabled = true;
+                        button.innerHTML = 'Processing...';
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
